@@ -2,12 +2,14 @@ package com.cug.miniblog.comment.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 @Data
-public class BolgComments implements Serializable {
+@TableName("t_comment")
+public class BlogComments implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -20,10 +22,9 @@ public class BolgComments implements Serializable {
      * 用户id
      */
     private Long userId;
-
-    /**
-     * 探店id
-     */
+   /**
+     *  关联文章id
+     * **/
     private Long blogId;
 
     /**
@@ -31,10 +32,6 @@ public class BolgComments implements Serializable {
      */
     private Long parentId;
 
-    /**
-     * 回复的评论id
-     */
-    private Long answerId;
 
     /**
      * 回复的内容
@@ -47,7 +44,7 @@ public class BolgComments implements Serializable {
     private Integer liked;
 
     /**
-     * 状态，0：正常，1：被举报，2：禁止查看
+     * 状态，0：正常，1：被删除
      */
     private Boolean status;
 
