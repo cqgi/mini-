@@ -1,14 +1,16 @@
 package com.cug.miniblog.comment.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.cug.miniblog.comment.entity.BlogComments;
+import com.cug.miniblog.comment.entity.BlogComment;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * comments mapper接口
  *
  *
  * **/
-public interface BlogCommentsMapper extends BaseMapper<BlogComments> {
+@Mapper
+public interface BlogCommentsMapper extends BaseMapper<BlogComment> {
 
 
 }
