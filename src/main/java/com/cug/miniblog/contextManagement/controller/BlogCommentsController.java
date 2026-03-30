@@ -1,8 +1,8 @@
-package com.cug.miniblog.comment.controller;
+package com.cug.miniblog.contextManagement.controller;
 
-import com.cug.miniblog.comment.dto.Result;
-import com.cug.miniblog.comment.entity.BlogComment;
-import com.cug.miniblog.comment.service.impl.CommentsServiceImpl;
+import com.cug.miniblog.contextManagement.dto.Result;
+import com.cug.miniblog.contextManagement.entity.BlogComment;
+import com.cug.miniblog.contextManagement.service.impl.CommentsServiceImpl;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 

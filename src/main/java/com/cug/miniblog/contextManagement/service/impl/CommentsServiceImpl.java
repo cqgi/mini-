@@ -1,23 +1,20 @@
-package com.cug.miniblog.comment.service.impl;
+package com.cug.miniblog.contextManagement.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.cug.miniblog.comment.dto.Result;
-import com.cug.miniblog.comment.entity.BlogComment;
-import com.cug.miniblog.comment.mapper.BlogCommentsMapper;
-import com.cug.miniblog.comment.service.ICommentsService;
-import org.apache.ibatis.annotations.Delete;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.sql.init.dependency.AbstractBeansOfTypeDependsOnDatabaseInitializationDetector;
+import com.cug.miniblog.contextManagement.dto.Result;
+import com.cug.miniblog.contextManagement.entity.BlogComment;
+import com.cug.miniblog.contextManagement.mapper.BlogCommentsMapper;
+import com.cug.miniblog.contextManagement.service.ICommentsService;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, BlogComment> implements ICommentsService {
-
+    @Resource
     BlogCommentsMapper blogCommentsMapper;
     @Override
     public Result postComment(String content, Long userId,Long parentId,Long blogId) {

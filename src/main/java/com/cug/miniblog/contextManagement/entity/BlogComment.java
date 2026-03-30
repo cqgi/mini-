@@ -1,4 +1,4 @@
-package com.cug.miniblog.comment.entity;
+package com.cug.miniblog.contextManagement.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

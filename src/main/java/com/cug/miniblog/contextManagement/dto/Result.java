@@ -1,4 +1,4 @@
-package com.cug.miniblog.comment.dto;
+package com.cug.miniblog.contextManagement.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;

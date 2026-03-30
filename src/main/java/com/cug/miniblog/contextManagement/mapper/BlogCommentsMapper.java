@@ -1,7 +1,7 @@
-package com.cug.miniblog.comment.mapper;
+package com.cug.miniblog.contextManagement.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.cug.miniblog.comment.entity.BlogComment;
+import com.cug.miniblog.contextManagement.entity.BlogComment;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

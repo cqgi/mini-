@@ -1,8 +1,8 @@
-package com.cug.miniblog.comment.service;
+package com.cug.miniblog.contextManagement.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.cug.miniblog.comment.dto.Result;
-import com.cug.miniblog.comment.entity.BlogComment;
+import com.cug.miniblog.contextManagement.dto.Result;
+import com.cug.miniblog.contextManagement.entity.BlogComment;
 
 import java.util.List;
 
