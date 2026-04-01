@@ -24,22 +24,22 @@ public class BlogCommentsController {
     String content = comment.getContent();
     Long userId=comment.getUserId();
     Long parentId=comment.getParentId();
-    Long blogId=comment.getBlogId();
-    commentService.postComment(content,userId,parentId,blogId);
+    Long articleId=comment.getArticleId();
+    commentService.postComment(content,userId,parentId,articleId);
     return Result.ok();
     }
     /**
      * 查询文章的一级评论列表
      */
-    @GetMapping("/blog/{blogId}/topCommentList")
-    public List<BlogComment> getTopComment(@PathVariable Long blogId) {
-        return commentService.getTopCommentList(blogId);
+    @GetMapping("/blog/{articleId}/topCommentList")
+    public List<BlogComment> getTopComment(@PathVariable Long articleId) {
+        return commentService.getTopCommentList(articleId);
     }
-    /**
-     * 点赞评论
-     */
-    @PutMapping("/blog/{commentId}/like")
-    public Result likeComment(@PathVariable Long commentId) {
-        return commentService.likeComment(commentId);
-    }
+//    /**
+//     * 点赞评论
+//     */
+//    @PutMapping("/blog/{commentId}/like")
+//    public Result likeComment(@PathVariable Long commentId) {
+//        return commentService.likeComment(commentId);
+//    }
 }

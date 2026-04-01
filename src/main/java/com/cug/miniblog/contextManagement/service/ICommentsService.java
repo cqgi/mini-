@@ -16,29 +16,29 @@ public interface ICommentsService extends IService<BlogComment> {
      * @param content,用户评论内容
      * @param userId,用户id
      * @param parentId,关联的1级评论id，如果是一级评论，则值为0
-     * @param blogId,关联文章id
+     * @param articleId,关联文章id
      *
      * @return
      */
-    Result postComment(String content,Long userId,Long parentId,Long blogId);
+    Result postComment(String content,Long userId,Long parentId,Long articleId);
     /**
      * 获取评论列表
-     * @param blogId,文章id
+     * @param articleId,文章id
      * @return
      */
-    List<BlogComment> getTopCommentList(Long blogId);
+    List<BlogComment> getTopCommentList(Long articleId);
     /**
      * 获取文章的树形评论列表（一级+子回复）
-     * @param blogId,文章id
+     * @param articleId,文章id
      * @return
      */
-    List<BlogComment> getCommentTreeList(Long blogId);
-    /**
-     * 点赞评论
-     * @param commentId,评论id
-     * @return
-     */
-    Result likeComment(Long commentId);
+    List<BlogComment> getCommentTreeList(Long articleId);
+//    /**
+//     * 点赞评论
+//     * @param commentId,评论id
+//     * @return
+//     */
+//    Result likeComment(Long commentId);
     /**
      * 删除评论
      * @param commentId,评论id

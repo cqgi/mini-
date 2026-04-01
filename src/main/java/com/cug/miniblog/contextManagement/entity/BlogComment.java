@@ -3,21 +3,19 @@ package com.cug.miniblog.contextManagement.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-@Data
 @TableName("t_comment")
 public class BlogComment implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    public Long getBlogId() {
-        return blogId;
+    public Long getArticleId() {
+        return articleId;
     }
 
-    public void setBlogId(Long blogId) {
-        this.blogId = blogId;
+    public void setArticleId(Long articleId) {
+        this.articleId = articleId;
     }
 
     public String getContent() {
@@ -44,13 +42,13 @@ public class BlogComment implements Serializable {
         this.id = id;
     }
 
-    public Integer getLiked() {
-        return liked;
-    }
-
-    public void setLiked(Integer liked) {
-        this.liked = liked;
-    }
+//    public Integer getLiked() {
+//        return liked;
+//    }
+//
+//    public void setLiked(Integer liked) {
+//        this.liked = liked;
+//    }
 
     public Long getParentId() {
         return parentId;
@@ -60,12 +58,12 @@ public class BlogComment implements Serializable {
         this.parentId = parentId;
     }
 
-    public Boolean getStatus() {
-        return status;
+    public Boolean getIsDeleted() {
+        return isDeleted;
     }
 
-    public void setStatus(Boolean status) {
-        this.status = status;
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public LocalDateTime getUpdateTime() {
@@ -97,7 +95,7 @@ public class BlogComment implements Serializable {
    /**
      *  关联文章id
      * **/
-    private Long blogId;
+    private Long articleId;
 
     /**
      * 关联的1级评论id，如果是一级评论，则值为0
@@ -110,15 +108,15 @@ public class BlogComment implements Serializable {
      */
     private String content;
 
-    /**
-     * 点赞数
-     */
-    private Integer liked;
+//    /**
+//     * 点赞数
+//     */
+//    private Integer liked;
 
     /**
      * 状态，0：正常，1：被删除
      */
-    private Boolean status;
+    private Boolean isDeleted;
 
     /**
      * 创建时间
