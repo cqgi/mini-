@@ -1,9 +1,8 @@
 package com.cug.miniblog.personalCenter.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.cug.miniblog.common.entity.TUser;
+import com.cug.miniblog.common.entity.User;
 
-public interface AuthService extends IService<TUser> {
+public interface AuthService {
     /**
      * 用户注册
      * 接口文档：1.1 用户注册 POST /auth/register
@@ -12,7 +11,7 @@ public interface AuthService extends IService<TUser> {
      * @param password 密码（6-20位）
      * @return 注册成功的用户基础信息（userId/username/email）
      */
-    TUser register(String username, String email, String password);
+    User register(String username, String email, String password);
 
     /**
      * 普通用户登录
