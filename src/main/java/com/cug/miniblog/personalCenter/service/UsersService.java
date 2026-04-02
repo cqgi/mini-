@@ -31,7 +31,7 @@ public interface UsersService {
      * @param status 文章状态（draft/pending/published/failed，可选）
      * @return 文章ID列表/文章基础信息列表
      */
-    List<Long> getMyArticles(Long userId, String status);
+    //List<Long> getMyArticles(Long userId, String status);
 
     /**
      * 获取当前用户发表的所有评论
@@ -39,7 +39,7 @@ public interface UsersService {
      * @param userId 当前登录用户ID
      * @return 评论ID列表/评论基础信息列表
      */
-    List<Long> getMyComments(Long userId);
+    //List<Long> getMyComments(Long userId);
 
     /**
      * 获取当前用户收藏的文章列表
@@ -47,7 +47,7 @@ public interface UsersService {
      * @param userId 当前登录用户ID
      * @return 收藏的文章ID列表
      */
-    List<Long> getFavorites(Long userId);
+    //List<Long> getFavorites(Long userId);
 
     /**
      * 收藏一篇文章
@@ -56,7 +56,7 @@ public interface UsersService {
      * @param articleId 要收藏的文章ID
      * @return 是否收藏成功
      */
-    boolean collectArticle(Long userId, Long articleId);
+    //boolean collectArticle(Long userId, Long articleId);
 
     /**
      * 取消收藏一篇文章
@@ -65,5 +65,5 @@ public interface UsersService {
      * @param articleId 要取消收藏的文章ID
      * @return 是否取消成功
      */
-    boolean cancelCollect(Long userId, Long articleId);
+    //boolean cancelCollect(Long userId, Long articleId);
 }

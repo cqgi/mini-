@@ -67,7 +67,10 @@ public class AuthServiceImpl  implements AuthService {
     @Override
     public String login(String username, String password) {
         // 是否为空
-        if (username == null || password == null || username.isBlank() || password.isBlank()) {
+        if (username == null || password == null) {
+            throw new IllegalArgumentException("用户名或密码不能为空");
+        }
+        if(username.isBlank()||password.isBlank()){
             throw new IllegalArgumentException("用户名或密码不能为空");
         }
         //检查标准
