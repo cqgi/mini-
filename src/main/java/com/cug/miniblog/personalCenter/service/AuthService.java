@@ -29,5 +29,5 @@ public interface AuthService {
      * @param password 管理员密码
      * @return 登录成功的令牌Token（带管理员权限标识）
      */
-    //String adminLogin(String username, String password);
+    String adminLogin(String username, String password);
 }
