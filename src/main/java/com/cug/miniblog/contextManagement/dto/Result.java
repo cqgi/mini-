@@ -57,6 +57,9 @@ public String toString() {
     public static final int SUCCESS_CODE = 200;
     public static final int FAIL_CODE = 400;
 
+    public static final int SUCCESS_CODE = 200;
+    public static final int FAIL_CODE = 400;
+
     public static Result ok(){
         return Result.builder()
                 .code(SUCCESS_CODE)
