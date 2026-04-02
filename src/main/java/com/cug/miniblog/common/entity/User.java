@@ -26,10 +26,7 @@ public class User implements Serializable {
     private String email;
 
     private String avatar;
-
-    /**
-     * 个人简介
-     */
+    
     private String bio;
 
     private Integer role;
