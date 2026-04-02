@@ -1,13 +1,10 @@
 package com.cug.miniblog.personalCenter.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.cug.miniblog.common.entity.User;
 import com.cug.miniblog.personalCenter.mapper.UserMapper;
 import com.cug.miniblog.personalCenter.service.AuthService;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,5 +88,32 @@ public class AuthServiceImpl  implements AuthService {
         }
         // 登录成功，返回令牌
         return  "登录成功"+user.getUsername();
+    }
+    @Transactional
+    @Override
+    public String adminLogin(String username, String password) {
+        // 是否为空
+        if (username == null || password == null || username.isBlank() || password.isBlank()) {
+            throw new IllegalArgumentException("用户名或密码不能为空");
+        }
+        if (!USERNAME_PATTERN.matcher(username).matches()) {
+            throw new IllegalArgumentException("用户名必须是字母、数字或下划线，长度在4到20之间");
+        }
+        if (!PASSWORD_PATTERN.matcher(password).matches()) {
+            throw new IllegalArgumentException("密码必须包含字母和数字，长度在6到20之间");
+        }
+        // 校验用户是否存在并且是否为管理员
+        User user = userMapper.selectOne(Wrappers.lambdaQuery(User.class).eq(User::getUsername, username).eq(User::getRole, 1));
+        if (user == null) {
+            throw new IllegalArgumentException("用户名不存在");
+        }
+        if(user.getRole()==0){
+            throw new IllegalArgumentException("用户不是管理员");
+        }
+        if (!user.getPassword().equals(password)) {
+            throw new IllegalArgumentException("密码错误");
+        }
+        // 登录成功，返回令牌
+        return  "登录成功，管理员权限"+user.getUsername();
     }
 }
