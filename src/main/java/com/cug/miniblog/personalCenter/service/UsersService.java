@@ -1,6 +1,6 @@
 package com.cug.miniblog.personalCenter.service;
 
-import com.cug.miniblog.common.entity.TUser;
+import com.cug.miniblog.common.entity.User;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ public interface UsersService {
      * @param userId 当前登录用户ID
      * @return 用户个人资料（昵称/头像/邮箱/简介等）
      */
-    TUser getProfile(Long userId);
+    User getProfile(Long userId);
 
     /**
      * 更新当前登录用户的个人资料
