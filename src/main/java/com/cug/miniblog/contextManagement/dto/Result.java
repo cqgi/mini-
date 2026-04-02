@@ -11,6 +11,15 @@ public class Result {
     private String errorMsg;//错误信息
     private Object data;//数据
     private Long total;
+@Override
+public String toString() {
+    return "Result{" +
+            "success=" + success +
+            ", errorMsg='" + errorMsg + '\'' +
+            ", data=" + data +
+            ", total=" + total +
+            '}';
+}
 
     public static Result ok(){
         return new Result(true, null, null, null);

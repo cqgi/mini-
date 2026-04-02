@@ -7,17 +7,29 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-@Data
 @TableName("t_comment")
 public class BlogComment implements Serializable {
     private static final long serialVersionUID = 1L;
-
-    public Long getBlogId() {
-        return blogId;
+@Override
+public String toString() {
+    return "BlogComment{" +
+            "commentId=" + commentId +
+            ", userId=" + userId +
+            ", articleId=" + articleId +
+            ", parentId=" + parentId +
+            ", content='" + content + '\'' +
+            ", liked=" + liked +
+            ", isDeleted=" + isDeleted +
+            ", createTime=" + createTime +
+            ", updateTime=" + updateTime +
+            '}';
+}
+    public Long getArticleId() {
+        return articleId;
     }
 
-    public void setBlogId(Long blogId) {
-        this.blogId = blogId;
+    public void setArticleId(Long articleId) {
+        this.articleId = articleId;
     }
 
     public String getContent() {
@@ -36,12 +48,12 @@ public class BlogComment implements Serializable {
         this.createTime = createTime;
     }
 
-    public Long getId() {
-        return id;
+    public Long getCommentId() {
+        return commentId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setCommentId(Long commentId) {
+        this.commentId = commentId;
     }
 
     public Integer getLiked() {
@@ -60,12 +72,12 @@ public class BlogComment implements Serializable {
         this.parentId = parentId;
     }
 
-    public Boolean getStatus() {
-        return status;
+    public Boolean getIsDeleted() {
+        return isDeleted;
     }
 
-    public void setStatus(Boolean status) {
-        this.status = status;
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public LocalDateTime getUpdateTime() {
@@ -87,8 +99,7 @@ public class BlogComment implements Serializable {
     /**
      * 主键
      */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    private Long commentId;
 
     /**
      * 用户id
@@ -97,7 +108,7 @@ public class BlogComment implements Serializable {
    /**
      *  关联文章id
      * **/
-    private Long blogId;
+    private Long articleId;
 
     /**
      * 关联的1级评论id，如果是一级评论，则值为0
@@ -118,7 +129,7 @@ public class BlogComment implements Serializable {
     /**
      * 状态，0：正常，1：被删除
      */
-    private Boolean status;
+    private Boolean isDeleted;
 
     /**
      * 创建时间
