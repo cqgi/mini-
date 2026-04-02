@@ -29,6 +29,11 @@ public class User implements Serializable {
     
     private String bio;
 
+    /**
+     * 个人简介
+     */
+    private String bio;
+
     private Integer role;
 
     private LocalDateTime createTime;
