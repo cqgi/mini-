@@ -2,9 +2,9 @@ package com.cug.miniblog.contextManagement.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.cug.miniblog.common.entity.Comment;
 import com.cug.miniblog.contextManagement.dto.Result;
-import com.cug.miniblog.contextManagement.entity.BlogComment;
-import com.cug.miniblog.contextManagement.mapper.BlogCommentsMapper;
+import com.cug.miniblog.contextManagement.mapper.CommentsMapper;
 import com.cug.miniblog.contextManagement.service.ICommentsService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -14,9 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 
 @Service
-public class CommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, BlogComment> implements ICommentsService {
+public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comment> implements ICommentsService {
     @Resource
-    BlogCommentsMapper blogCommentsMapper;
+    CommentsMapper CommentsMapper;
     /**
      * 发表评论
      * @param content 评论内容
@@ -29,16 +29,16 @@ public class CommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, BlogCom
     public Result postComment(String content, Long userId,Long parentId,Long articleId) {
 
         if(content==null){return  Result.fail("评论内容不能为空");}
-        BlogComment comment=new BlogComment();
+        Comment comment=new Comment();
         comment.setUserId(userId);
-        comment.setParentId(parentId);
+        comment.setParentId(parentId==0?null:parentId);
         comment.setArticleId(articleId);
         comment.setContent(content);
         comment.setLiked(0);
         comment.setIsDeleted(false);
         comment.setCreateTime(LocalDateTime.now());
-        blogCommentsMapper.insert(comment);
-        return Result.ok();
+        CommentsMapper.insert(comment);
+        return Result.ok("评论成功");
     }
     /**
      * 获取评论列表
@@ -46,18 +46,18 @@ public class CommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, BlogCom
      * @return 评论列表
      */
     @Override
-    public List<BlogComment> getTopCommentList(Long articleId) {
-        LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<>();
+    public List<Comment> getTopCommentList(Long articleId) {
+        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
         // 条件：指定文章 + 一级评论
-        wrapper.eq(BlogComment::getArticleId, articleId)
-                .isNull(BlogComment::getParentId)
-                .eq(BlogComment::getIsDeleted,false)
+        wrapper.eq(Comment::getArticleId, articleId)
+                .isNull(Comment::getParentId)
+                .eq(Comment::getIsDeleted,false)
                 // 排序：点赞数最多的评论在前
-                .orderByDesc(BlogComment::getLiked)
+                .orderByDesc(Comment::getLiked)
                 // 排序：点赞数相同最新评论在前
-                .orderByDesc(BlogComment::getCreateTime);
+                .orderByDesc(Comment::getCreateTime);
 
-        return blogCommentsMapper.selectList(wrapper);
+        return CommentsMapper.selectList(wrapper);
     }
     /**
      * 获取评论树列表
@@ -65,9 +65,9 @@ public class CommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, BlogCom
      * @return 评论树列表
      */
     @Override
-     public  HashMap<Long,List<BlogComment>>getCommentHashList(Long articleId) {
-        HashMap<Long,List<BlogComment>> commentMap=new HashMap<>();
-        for(BlogComment comment:getTopCommentList(articleId)){
+     public  HashMap<Long,List<Comment>>getCommentHashList(Long articleId) {
+        HashMap<Long,List<Comment>> commentMap=new HashMap<>();
+        for(Comment comment:getTopCommentList(articleId)){
             getCommentListByParentId(comment.getCommentId(),commentMap);
         }
 
@@ -80,15 +80,15 @@ public class CommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, BlogCom
      */
     @Override
     public Result likeComment(Long commentId) {
-        LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogComment::getCommentId, commentId)
-                .eq(BlogComment::getIsDeleted, false);
-        BlogComment comment = blogCommentsMapper.selectOne(wrapper);
+        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Comment::getCommentId, commentId)
+                .eq(Comment::getIsDeleted, false);
+        Comment comment = CommentsMapper.selectOne(wrapper);
         if (comment == null) {
             return Result.fail("评论不存在");
         }
         comment.setLiked(comment.getLiked()+1);
-        blogCommentsMapper.update(comment,wrapper);
+        CommentsMapper.update(comment,wrapper);
         return Result.ok("点赞成功");
     }
     /**
@@ -99,16 +99,16 @@ public class CommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, BlogCom
      */
     @Override
     public Result deleteComment(Long commentId, Long userId) {
-        LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogComment::getCommentId, commentId)
-                .eq(BlogComment::getUserId, userId)
-                .eq(BlogComment::getIsDeleted, false);
-        BlogComment comment = blogCommentsMapper.selectOne(wrapper);
+        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Comment::getCommentId, commentId)
+                .eq(Comment::getUserId, userId)
+                .eq(Comment::getIsDeleted, false);
+        Comment comment = CommentsMapper.selectOne(wrapper);
         if (comment == null) {
             return Result.ok("评论不存在");
         }
         comment.setIsDeleted(true);
-        blogCommentsMapper.update(comment,wrapper);
+        CommentsMapper.update(comment,wrapper);
         return Result.ok("评论删除成功");
     }
 
@@ -121,22 +121,22 @@ public class CommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, BlogCom
      */
     @Override
     public Result replyComment(Long commentId, String content, Long userId) {
-        LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogComment::getCommentId, commentId)
-                .eq(BlogComment::getUserId, userId)
-                .eq(BlogComment::getIsDeleted, false);
-        BlogComment comment = blogCommentsMapper.selectOne(wrapper);
+        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Comment::getCommentId, commentId)
+                .eq(Comment::getUserId, userId)
+                .eq(Comment::getIsDeleted, false);
+        Comment comment = CommentsMapper.selectOne(wrapper);
         if (comment == null) {
             return Result.fail("回复的评论不存在");
         }
-        BlogComment replyComment=new BlogComment();
+        Comment replyComment=new Comment();
         replyComment.setUserId(userId);
         replyComment.setParentId(commentId);
         replyComment.setArticleId(comment.getArticleId());
         replyComment.setContent(content);
         replyComment.setIsDeleted(false);
         replyComment.setCreateTime(LocalDateTime.now());
-        blogCommentsMapper.insert(replyComment);
+        CommentsMapper.insert(replyComment);
         return Result.ok("回复成功");
     }
     /**
@@ -146,14 +146,14 @@ public class CommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, BlogCom
      * @return 评论映射
      *
      */
-private HashMap<Long,List<BlogComment>> getCommentListByParentId(Long parentId,HashMap<Long,List<BlogComment>> commentMap) {
+private HashMap<Long,List<Comment>> getCommentListByParentId(Long parentId,HashMap<Long,List<Comment>> commentMap) {
         if(parentId==null){return  null;}
-        LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogComment::getParentId, parentId)
-                .eq(BlogComment::getIsDeleted, false);
-        List<BlogComment> commentList = blogCommentsMapper.selectList(wrapper);
+        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Comment::getParentId, parentId)
+                .eq(Comment::getIsDeleted, false);
+        List<Comment> commentList = CommentsMapper.selectList(wrapper);
         commentMap.put(parentId,commentList);
-        for (BlogComment comment : commentList) {
+        for (Comment comment : commentList) {
             getCommentListByParentId(comment.getCommentId(), commentMap);
         }
         return commentMap;

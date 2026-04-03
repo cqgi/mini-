@@ -1,8 +1,8 @@
 package com.cug.miniblog;
 
-import com.cug.miniblog.contextManagement.controller.BlogCommentsController;
+import com.cug.miniblog.contextManagement.controller.CommentsController;
 import com.cug.miniblog.contextManagement.dto.Result;
-import com.cug.miniblog.contextManagement.entity.BlogComment;
+import com.cug.miniblog.common.entity.Comment;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,10 +15,10 @@ import java.util.List;
 class MiniBlogApplicationTests {
 
     @Autowired
-    private BlogCommentsController blogCommentsController;
+    private CommentsController blogCommentsController;
     @Test
     void testPostComment() {
-        BlogComment comment = new BlogComment();
+        Comment comment = new Comment();
         comment.setArticleId(1L);
         comment.setUserId(1L);
         comment.setParentId(16L);
@@ -30,7 +30,7 @@ class MiniBlogApplicationTests {
     }
     @Test
     void testGetCommentList() {
-        List<BlogComment> commentList = blogCommentsController.getTopComment(1L);
+        List<Comment> commentList = blogCommentsController.getTopComment(1L);
        commentList.forEach(System.out::println);
     }
     @Test
@@ -50,7 +50,7 @@ class MiniBlogApplicationTests {
     }
     @Test
     void testGetCommentHashList() {
-        HashMap<Long,List<BlogComment>> commentHashList = blogCommentsController.getCommentHashList(1L);
+        HashMap<Long,List<Comment>> commentHashList = blogCommentsController.getCommentHashList(1L);
         commentHashList.forEach((key,value)->{
             System.out.println(key+":"+value.size());
             value.forEach(System.out::println);

@@ -1,9 +1,8 @@
 package com.cug.miniblog.contextManagement.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.cug.miniblog.common.entity.Comment;
 import com.cug.miniblog.contextManagement.dto.Result;
-import com.cug.miniblog.contextManagement.entity.BlogComment;
-
 import java.util.HashMap;
 import java.util.List;
 
@@ -11,7 +10,7 @@ import java.util.List;
  *评论服务接口
  *
  * **/
-public interface ICommentsService extends IService<BlogComment> {
+public interface ICommentsService extends IService<Comment> {
     /**
      * 添加评论
      * @param content,用户评论内容
@@ -27,13 +26,13 @@ public interface ICommentsService extends IService<BlogComment> {
      * @param articleId,文章id
      * @return
      */
-    List<BlogComment> getTopCommentList(Long articleId);
+    List<Comment> getTopCommentList(Long articleId);
     /**
      * 获取文章的哈希评论列表（一级+子回复）
      * @param articleId,文章id
      * @return
      */
-    HashMap<Long,List<BlogComment>> getCommentHashList(Long articleId);
+    HashMap<Long,List<Comment>> getCommentHashList(Long articleId);
     /**
      * * 点赞评论
      * @param commentId,评论id

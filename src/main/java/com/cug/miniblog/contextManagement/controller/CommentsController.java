@@ -1,7 +1,7 @@
 package com.cug.miniblog.contextManagement.controller;
 
 import com.cug.miniblog.contextManagement.dto.Result;
-import com.cug.miniblog.contextManagement.entity.BlogComment;
+import com.cug.miniblog.common.entity.Comment;
 import com.cug.miniblog.contextManagement.service.impl.CommentsServiceImpl;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/blog-comments")
-public class BlogCommentsController {
+public class CommentsController {
 
     @Resource
     private CommentsServiceImpl commentService;
@@ -19,7 +19,7 @@ public class BlogCommentsController {
      * 发表评论
      */
     @PostMapping("/blog/post")
-    public Result PostComment(@RequestBody BlogComment comment)
+    public Result PostComment(@RequestBody Comment comment)
     {
     if(comment.getContent() == null) return Result.fail("评论内容不能为空");
     String content = comment.getContent();
@@ -33,14 +33,14 @@ public class BlogCommentsController {
      * 查询文章的一级评论列表
      */
     @GetMapping("/blog/{articleId}/topCommentList")
-    public List<BlogComment> getTopComment(@PathVariable Long articleId) {
+    public List<Comment> getTopComment(@PathVariable Long articleId) {
         return commentService.getTopCommentList(articleId);
     }
     /**
      * 查询文章的树形评论列表（一级+子回复）
      */
     @GetMapping("/blog/{articleId}/commentTreeList")
-    public HashMap<Long,List<BlogComment>> getCommentHashList(@PathVariable Long articleId) {
+    public HashMap<Long,List<Comment>> getCommentHashList(@PathVariable Long articleId) {
         return commentService.getCommentHashList(articleId);
     }
     /**
