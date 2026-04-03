@@ -47,7 +47,6 @@ public class UsersController {
     public boolean collectArticle(Long userId, @PathVariable Long articleId) {
         return usersService.collectArticle(userId, articleId);
     }
-    // http://localhost:8080/users/favorites/123
     // http://localhost:8080/users/favorites/123?userId=1
     @DeleteMapping("/favorites/{articleId}")
     public boolean cancelCollect(Long userId, @PathVariable Long articleId) {
