@@ -1,6 +1,5 @@
 package com.cug.miniblog.contextManagement.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.cug.miniblog.common.entity.Article;
 import com.cug.miniblog.common.entity.ArticleTag;
 import com.cug.miniblog.contextManagement.dto.CreateArticleDTO;
@@ -66,7 +65,7 @@ public class ArticleServiceImpl implements IArticleService {
         // 文章主表插入成功后，再批量写入标签关联。
         // 两步操作放在同一个事务中，只要任一步失败就整体回滚，避免出现“文章已保存但标签丢失”的不一致数据。
         saveArticleTags(article.getArticleId(), createArticleDTO.getTagIds());
-        return Result.ok(article.getArticleId());
+        return Result.ok("文章创建成功", article.getArticleId());
     }
 
     @Override
@@ -110,7 +109,7 @@ public class ArticleServiceImpl implements IArticleService {
         // 这里同样必须放在事务中，保证文章内容更新与标签关系变更要么同时成功，要么同时失败。
         articleTagMapper.deleteByArticleId(articleId);
         saveArticleTags(articleId, updateArticleDTO.getTagIds());
-        return Result.ok();
+        return Result.ok("文章更新成功", articleId);
     }
 
     @Override
@@ -124,11 +123,10 @@ public class ArticleServiceImpl implements IArticleService {
             return Result.fail("文章不存在");
         }
 
-        Article article = new Article();
-        article.setArticleId(articleId);
-        article.setIsDeleted(1);
-        articleMapper.updateById(article);
-        return Result.ok();
+        // Article 实体配置了 @TableLogic，这里应走 MyBatis-Plus 的逻辑删除入口，
+        // 由框架自动将 is_deleted 更新为 1，避免手动 update 触发异常。
+        articleMapper.deleteById(articleId);
+        return Result.ok("文章删除成功", articleId);
     }
 
     @Override
@@ -145,11 +143,11 @@ public class ArticleServiceImpl implements IArticleService {
             return Result.fail("文章不存在");
         }
 
-        LambdaUpdateWrapper<Article> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(Article::getArticleId, articleId)
-                .set(Article::getIsTop, isTop);
-        articleMapper.update(null, updateWrapper);
-        return Result.ok();
+        Article article = new Article();
+        article.setArticleId(articleId);
+        article.setIsTop(isTop);
+        articleMapper.updateById(article);
+        return Result.ok(isTop == 1 ? "文章置顶成功" : "文章取消置顶成功", articleId);
     }
 
     private Result validateCreateOrUpdateParam(String title, String content, Long userId, Long categoryId, Integer status) {
