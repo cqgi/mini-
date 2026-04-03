@@ -1,11 +1,13 @@
 package com.cug.miniblog.contextManagement.controller;
 
+import com.cug.miniblog.contextManagement.dto.ArticleQueryDTO;
 import com.cug.miniblog.contextManagement.dto.CreateArticleDTO;
 import com.cug.miniblog.contextManagement.dto.Result;
 import com.cug.miniblog.contextManagement.dto.UpdateArticleDTO;
 import com.cug.miniblog.contextManagement.service.IArticleService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +28,22 @@ public class ArticleController {
     private IArticleService articleService;
 
     /**
+     * 前台文章列表
+     */
+    @GetMapping
+    public Result listPublishedArticles(ArticleQueryDTO articleQueryDTO) {
+        return articleService.listPublishedArticles(articleQueryDTO);
+    }
+
+    /**
+     * 前台文章详情
+     */
+    @GetMapping("/{articleId}")
+    public Result getPublishedArticleDetail(@PathVariable("articleId") Long articleId) {
+        return articleService.getPublishedArticleDetail(articleId);
+    }
+
+    /**
      * 新增文章
      */
     @PostMapping
@@ -37,7 +55,7 @@ public class ArticleController {
      * 更新文章
      */
     @PutMapping("/{articleId}")
-    public Result updateArticle(@PathVariable Long articleId, @RequestBody UpdateArticleDTO updateArticleDTO) {
+    public Result updateArticle(@PathVariable("articleId") Long articleId, @RequestBody UpdateArticleDTO updateArticleDTO) {
         return articleService.updateArticle(articleId, updateArticleDTO);
     }
 
@@ -45,7 +63,7 @@ public class ArticleController {
      * 逻辑删除文章
      */
     @DeleteMapping("/{articleId}")
-    public Result deleteArticle(@PathVariable Long articleId) {
+    public Result deleteArticle(@PathVariable("articleId") Long articleId) {
         return articleService.deleteArticle(articleId);
     }
 
@@ -53,7 +71,8 @@ public class ArticleController {
      * 切换置顶状态
      */
     @PatchMapping("/{articleId}/top")
-    public Result changeTopStatus(@PathVariable Long articleId, @RequestParam Integer isTop) {
+    public Result changeTopStatus(@PathVariable("articleId") Long articleId, @RequestParam("isTop") Integer isTop) {
         return articleService.changeTopStatus(articleId, isTop);
     }
+
 }
