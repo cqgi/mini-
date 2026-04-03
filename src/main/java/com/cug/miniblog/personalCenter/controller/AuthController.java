@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     @Resource
     private AuthService authService;
-    // http://localhost:8080/auth/register?username=jake&email=jake@example.com&password=123456iiiI
+    // http://localhost:8081/auth/register?username=jake&email=jake@example.com&password=123456iiiI
     @PostMapping("/register")
     public User register(String username, String email, String password) {
         return authService.register(username, email, password);
