@@ -31,7 +31,7 @@ public class UsersController {
     public List<Long> getMyArticles(Long userId, String status) {
         return usersService.getMyArticles(userId, status);
     }
-    // http://localhost:8080/users/comments?userId=2
+    // http://localhost:8080/users/comments?userId=1
     @GetMapping("/comments")
     public List<Long> getMyComments(Long userId) {
         return usersService.getMyComments(userId);
