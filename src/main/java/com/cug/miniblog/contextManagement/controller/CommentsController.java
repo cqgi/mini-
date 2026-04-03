@@ -46,10 +46,10 @@ public class CommentsController {
     /**
      * 点赞评论
      */
-    @PutMapping("/blog/{commentId}/like")
-    public Result likeComment(@PathVariable Long commentId) {
-        return commentService.likeComment(commentId);
-    }
+//    @PutMapping("/blog/{commentId}/like")
+//    public Result likeComment(@PathVariable Long commentId) {
+//        return commentService.likeComment(commentId);
+//    }
     /**
      * 删除评论
      */

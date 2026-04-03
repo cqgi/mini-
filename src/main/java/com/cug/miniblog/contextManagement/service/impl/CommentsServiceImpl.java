@@ -34,8 +34,8 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comment> im
         comment.setParentId(parentId==0?null:parentId);
         comment.setArticleId(articleId);
         comment.setContent(content);
-        comment.setLiked(0);
-        comment.setIsDeleted(false);
+        //comment.setLiked(0);
+        comment.setIsDeleted(0);
         comment.setCreateTime(LocalDateTime.now());
         CommentsMapper.insert(comment);
         return Result.ok("评论成功");
@@ -53,7 +53,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comment> im
                 .isNull(Comment::getParentId)
                 .eq(Comment::getIsDeleted,false)
                 // 排序：点赞数最多的评论在前
-                .orderByDesc(Comment::getLiked)
+               // .orderByDesc(Comment::getLiked)
                 // 排序：点赞数相同最新评论在前
                 .orderByDesc(Comment::getCreateTime);
 
@@ -73,24 +73,24 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comment> im
 
         return commentMap;
     }
-    /**
-     * 点赞评论
-     * @param commentId 评论id
-     * @return 点赞结果
-     */
-    @Override
-    public Result likeComment(Long commentId) {
-        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Comment::getCommentId, commentId)
-                .eq(Comment::getIsDeleted, false);
-        Comment comment = CommentsMapper.selectOne(wrapper);
-        if (comment == null) {
-            return Result.fail("评论不存在");
-        }
-        comment.setLiked(comment.getLiked()+1);
-        CommentsMapper.update(comment,wrapper);
-        return Result.ok("点赞成功");
-    }
+//    /**
+//     * 点赞评论
+//     * @param commentId 评论id
+//     * @return 点赞结果
+//     */
+//    @Override
+//    public Result likeComment(Long commentId) {
+//        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
+//        wrapper.eq(Comment::getCommentId, commentId)
+//                .eq(Comment::getIsDeleted, false);
+//        Comment comment = CommentsMapper.selectOne(wrapper);
+//        if (comment == null) {
+//            return Result.fail("评论不存在");
+//        }
+//        comment.setLiked(comment.getLiked()+1);
+//        CommentsMapper.update(comment,wrapper);
+//        return Result.ok("点赞成功");
+//    }
     /**
      * 删除评论
      * @param commentId 评论id
@@ -107,7 +107,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comment> im
         if (comment == null) {
             return Result.ok("评论不存在");
         }
-        comment.setIsDeleted(true);
+        comment.setIsDeleted(1);
         CommentsMapper.update(comment,wrapper);
         return Result.ok("评论删除成功");
     }
@@ -134,7 +134,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comment> im
         replyComment.setParentId(commentId);
         replyComment.setArticleId(comment.getArticleId());
         replyComment.setContent(content);
-        replyComment.setIsDeleted(false);
+        replyComment.setIsDeleted(0);
         replyComment.setCreateTime(LocalDateTime.now());
         CommentsMapper.insert(replyComment);
         return Result.ok("回复成功");
@@ -150,7 +150,7 @@ private HashMap<Long,List<Comment>> getCommentListByParentId(Long parentId,HashM
         if(parentId==null){return  null;}
         LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Comment::getParentId, parentId)
-                .eq(Comment::getIsDeleted, false);
+                .eq(Comment::getIsDeleted, 0);
         List<Comment> commentList = CommentsMapper.selectList(wrapper);
         commentMap.put(parentId,commentList);
         for (Comment comment : commentList) {

@@ -22,7 +22,7 @@ class MiniBlogApplicationTests {
         comment.setArticleId(1L);
         comment.setUserId(1L);
         comment.setParentId(16L);
-        comment.setLiked(0);
+       // comment.setLiked(0);
         comment.setContent("This is a comment");
 
         Result result = blogCommentsController.PostComment(comment);
@@ -33,11 +33,11 @@ class MiniBlogApplicationTests {
         List<Comment> commentList = blogCommentsController.getTopComment(1L);
        commentList.forEach(System.out::println);
     }
-    @Test
-    void testLikeComment() {
-        Result result = blogCommentsController.likeComment(14L);
-        System.out.println(result);
-    }
+//    @Test
+//    void testLikeComment() {
+//        Result result = blogCommentsController.likeComment(14L);
+//        System.out.println(result);
+//    }
     @Test
     void testDeleteComment() {
         Result result = blogCommentsController.deleteComment(14L,1L);
