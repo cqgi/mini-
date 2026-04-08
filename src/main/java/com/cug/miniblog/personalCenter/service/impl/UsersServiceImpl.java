@@ -75,14 +75,15 @@ public class UsersServiceImpl implements UsersService {
         queryWrapper.eq(Collect::getUserId, userId)
                 .eq(Collect::getArticleId, articleId);
         Collect existCollect = collectMapper.selectOne(queryWrapper);
-        if (existCollect != null) {
-            return false;
+        if (existCollect == null) {
+            Collect collect = new Collect();
+            collect.setUserId(userId);
+            collect.setArticleId(articleId);
+            collect.setCreateTime(LocalDateTime.now());
+            return collectMapper.insert(collect) > 0;
         }
-        Collect collect = new Collect();
-        collect.setUserId(userId);
-        collect.setArticleId(articleId);
-        collect.setCreateTime(LocalDateTime.now());
-        return collectMapper.insert(collect) > 0;
+        existCollect.setIsDeleted(0);
+        return collectMapper.updateById(existCollect) > 0;
     }
 
     @Override
