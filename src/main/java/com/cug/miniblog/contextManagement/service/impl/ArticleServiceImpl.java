@@ -11,12 +11,12 @@ import com.cug.miniblog.contextManagement.dto.ArticleQueryDTO;
 import com.cug.miniblog.contextManagement.dto.CreateArticleDTO;
 import com.cug.miniblog.contextManagement.dto.Result;
 import com.cug.miniblog.contextManagement.dto.UpdateArticleDTO;
-import com.cug.miniblog.contextManagement.mapper.ArticleMapper;
 import com.cug.miniblog.contextManagement.mapper.ArticleTagMapper;
 import com.cug.miniblog.contextManagement.mapper.ArticleTagMapper.ArticleTagQueryRow;
 import com.cug.miniblog.contextManagement.mapper.CategoryMapper;
+import com.cug.miniblog.contextManagement.mapper.ContextArticleMapper;
+import com.cug.miniblog.contextManagement.mapper.ContextUserMapper;
 import com.cug.miniblog.contextManagement.mapper.TagMapper;
-import com.cug.miniblog.contextManagement.mapper.UserMapper;
 import com.cug.miniblog.contextManagement.service.IArticleService;
 import com.cug.miniblog.contextManagement.vo.ArticleDetailVO;
 import com.cug.miniblog.contextManagement.vo.ArticleListVO;
@@ -42,14 +42,14 @@ import java.util.stream.Collectors;
 @Service
 public class ArticleServiceImpl implements IArticleService {
 
-    @Resource
-    private ArticleMapper articleMapper;
+    @Resource(name = "contextArticleMapper")
+    private ContextArticleMapper articleMapper;
 
     @Resource
     private ArticleTagMapper articleTagMapper;
 
-    @Resource
-    private UserMapper userMapper;
+    @Resource(name = "contextUserMapper")
+    private ContextUserMapper userMapper;
 
     @Resource
     private CategoryMapper categoryMapper;
