@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Update;
  * 文章 Mapper
  */
 @Mapper
-public interface ArticleMapper extends BaseMapper<Article> {
+public interface ContextArticleMapper extends BaseMapper<Article> {
 
     /**
      * 增加文章浏览量
