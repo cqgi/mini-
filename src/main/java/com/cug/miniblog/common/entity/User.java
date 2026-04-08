@@ -29,8 +29,6 @@ public class User implements Serializable {
     
     private String bio;
 
-    private String bio;
-
     private Integer role;
 
     private LocalDateTime createTime;
