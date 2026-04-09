@@ -135,7 +135,7 @@ export default function ArticlePage({
     async () => {
       try {
         const result = await articleApi.getDetail(articleId);
-        if (result.data) {
+        if (result.success && result.data) {
           return result.data;
         }
         return mockArticle;

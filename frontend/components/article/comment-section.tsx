@@ -18,37 +18,21 @@ const mockComments: Comment[] = [
     commentId: 1,
     articleId: 1,
     userId: 2,
-    parentId: 0,
+    parentId: null,
     content: "非常详细的文章！React Server Components 确实是一个很重要的特性，特别是在构建大型应用时，可以显著减少客户端包的大小。",
     createTime: "2024-03-15T11:30:00",
-    user: {
-      userId: 2,
-      username: "lisi",
-      nickname: "李四",
-      email: "",
-      avatar: "",
-      bio: "",
-      role: 0,
-      createTime: "",
-    },
+    nickname: "李四",
+    avatar: "",
   },
   {
     commentId: 2,
     articleId: 1,
     userId: 3,
-    parentId: 0,
+    parentId: null,
     content: "请问 Server Components 和 SSR 有什么区别呢？",
     createTime: "2024-03-15T12:00:00",
-    user: {
-      userId: 3,
-      username: "wangwu",
-      nickname: "王五",
-      email: "",
-      avatar: "",
-      bio: "",
-      role: 0,
-      createTime: "",
-    },
+    nickname: "王五",
+    avatar: "",
   },
   {
     commentId: 3,
@@ -57,16 +41,8 @@ const mockComments: Comment[] = [
     parentId: 2,
     content: "SSR 是在服务端渲染整个页面的 HTML，而 Server Components 可以更细粒度地控制哪些组件在服务端运行。它们可以配合使用。",
     createTime: "2024-03-15T12:30:00",
-    user: {
-      userId: 1,
-      username: "zhangsan",
-      nickname: "张三",
-      email: "",
-      avatar: "",
-      bio: "",
-      role: 0,
-      createTime: "",
-    },
+    nickname: "张三",
+    avatar: "",
   },
 ];
 
@@ -139,9 +115,9 @@ export function CommentSection({ articleId }: CommentSectionProps) {
     }
   };
 
-  // Build comment tree
-  const topLevelComments = comments.filter((c) => c.parentId === 0);
-  const replies = comments.filter((c) => c.parentId !== 0);
+  // Build comment tree (parentId is null for top-level comments)
+  const topLevelComments = comments.filter((c) => c.parentId === null || c.parentId === 0);
+  const replies = comments.filter((c) => c.parentId !== null && c.parentId !== 0);
 
   return (
     <section className="mt-12 pt-12 border-t border-border">
@@ -315,7 +291,7 @@ function CommentItem({
             isReply ? "text-xs" : "text-sm"
           )}
         >
-          {comment.user?.nickname?.charAt(0).toUpperCase() || "?"}
+          {comment.nickname?.charAt(0).toUpperCase() || "?"}
         </span>
       </div>
       <div className="flex-1 min-w-0">
@@ -326,7 +302,7 @@ function CommentItem({
               isReply ? "text-sm" : ""
             )}
           >
-            {comment.user?.nickname || "匿名用户"}
+            {comment.nickname || "匿名用户"}
           </span>
           <span className="text-xs text-muted-foreground">
             {formatRelativeTime(comment.createTime)}

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import useSWR from "swr";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
-import { Search, Filter, TrendingUp, Clock, Flame } from "lucide-react";
+import { Search, TrendingUp, Clock, Flame, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Article } from "@/lib/api";
+import { articleApi, type Article } from "@/lib/api";
 
 const categories = [
   { id: 0, name: "全部" },
@@ -140,18 +141,37 @@ export default function ExplorePage() {
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [selectedSort, setSelectedSort] = useState("trending");
 
-  const filteredArticles = mockArticles.filter((article) => {
-    if (selectedCategory !== 0 && article.categoryId !== selectedCategory) {
-      return false;
+  // Fetch articles from API
+  const { data, isLoading } = useSWR(
+    ["explore-articles", selectedCategory, searchQuery],
+    async () => {
+      try {
+        const params: { current?: number; size?: number; categoryId?: number; keyword?: string } = {
+          current: 1,
+          size: 50,
+        };
+        if (selectedCategory !== 0) {
+          params.categoryId = selectedCategory;
+        }
+        if (searchQuery) {
+          params.keyword = searchQuery;
+        }
+        const result = await articleApi.getList(params);
+        if (result.success && result.data && Array.isArray(result.data)) {
+          return result.data;
+        }
+        return mockArticles;
+      } catch {
+        return mockArticles;
+      }
+    },
+    {
+      fallbackData: mockArticles,
+      revalidateOnFocus: false,
     }
-    if (
-      searchQuery &&
-      !article.title.toLowerCase().includes(searchQuery.toLowerCase())
-    ) {
-      return false;
-    }
-    return true;
-  });
+  );
+
+  const filteredArticles = data || mockArticles;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -220,7 +240,11 @@ export default function ExplorePage() {
           </div>
 
           {/* Results */}
-          {filteredArticles.length > 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+          ) : filteredArticles.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredArticles.map((article) => (
                 <ArticleCard key={article.articleId} article={article} />

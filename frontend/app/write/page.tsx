@@ -137,15 +137,21 @@ export default function WritePage() {
 
     setIsPublishing(true);
     try {
-      await articleApi.create({
+      const result = await articleApi.create({
         title: article.title,
         summary: article.summary || article.content.slice(0, 200),
         content: article.content,
         cover: article.cover,
+        userId: user.userId,
         categoryId: article.categoryId,
+        status: 1, // 1 = 已发布
         tagIds: [],
       });
-      router.push("/profile");
+      if (result.success) {
+        router.push("/profile");
+      } else {
+        alert(result.message || "发布失败，请稍后重试");
+      }
     } catch (error) {
       console.error("Failed to publish:", error);
       alert("发布失败，请稍后重试");

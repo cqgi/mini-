@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
-import { userApi } from "@/lib/api";
+import { userApi, parseToken } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,20 +30,42 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const token = await userApi.login(formData.username, formData.password);
-      if (token && token !== "false") {
-        // Get user profile after login
-        // For demo, create a mock user
-        const mockUser = {
-          userId: 1,
-          username: formData.username,
-          nickname: formData.username,
-          email: `${formData.username}@example.com`,
-          avatar: "",
-          bio: "",
-          role: 0,
-          createTime: new Date().toISOString(),
-        };
-        login(mockUser, token);
+      if (token && token !== "false" && token.length > 10) {
+        // Parse token to get user ID
+        const tokenData = parseToken(token);
+        if (tokenData?.userId) {
+          // Fetch user profile from backend
+          try {
+            const userProfile = await userApi.getProfile(tokenData.userId);
+            login(userProfile, token);
+          } catch {
+            // If profile fetch fails, use basic info
+            const basicUser = {
+              userId: tokenData.userId,
+              username: formData.username,
+              nickname: formData.username,
+              email: "",
+              avatar: "",
+              bio: "",
+              role: 0,
+              createTime: new Date().toISOString(),
+            };
+            login(basicUser, token);
+          }
+        } else {
+          // Token doesn't contain userId, use basic info
+          const basicUser = {
+            userId: 0,
+            username: formData.username,
+            nickname: formData.username,
+            email: "",
+            avatar: "",
+            bio: "",
+            role: 0,
+            createTime: new Date().toISOString(),
+          };
+          login(basicUser, token);
+        }
         router.push("/");
       } else {
         setError("用户名或密码错误");

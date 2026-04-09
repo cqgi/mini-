@@ -104,14 +104,20 @@ export function ArticleList() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  // Try to fetch from API, fallback to mock data
+  // Fetch articles from API, fallback to mock data
   const { data, error, isLoading, mutate } = useSWR(
     ["articles", page],
     async () => {
       try {
-        const result = await articleApi.getList({ page, size: pageSize });
-        if (result.data?.records?.length > 0) {
-          return result.data;
+        const result = await articleApi.getList({ current: page, size: pageSize });
+        if (result.success && result.data && Array.isArray(result.data) && result.data.length > 0) {
+          return {
+            records: result.data,
+            total: result.total || result.data.length,
+            size: pageSize,
+            current: page,
+            pages: Math.ceil((result.total || result.data.length) / pageSize),
+          };
         }
         // Return mock data if no real data
         return {

@@ -5,7 +5,7 @@ import useSWR from "swr";
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
 import { cn } from "@/lib/utils";
-import type { Article } from "@/lib/api";
+import { userApi, articleApi, type Article } from "@/lib/api";
 
 interface ProfileTabsProps {
   activeTab: "articles" | "favorites" | "comments";
@@ -107,9 +107,33 @@ export function ProfileTabs({ activeTab, onTabChange, userId }: ProfileTabsProps
 }
 
 function ArticlesTab({ userId }: { userId: number }) {
-  // Use mock data for now
-  const articles = mockArticles;
-  const isLoading = false;
+  // Fetch user's articles from API
+  const { data: articles = mockArticles, isLoading } = useSWR(
+    ["my-articles", userId],
+    async () => {
+      try {
+        // First get article IDs
+        const articleIds = await userApi.getMyArticles(userId);
+        if (articleIds && articleIds.length > 0) {
+          // For each article ID, fetch the details
+          const articlePromises = articleIds.map(async (id) => {
+            try {
+              const result = await articleApi.getDetail(id);
+              return result.success ? result.data : null;
+            } catch {
+              return null;
+            }
+          });
+          const articlesData = await Promise.all(articlePromises);
+          return articlesData.filter((a): a is Article => a !== null);
+        }
+        return mockArticles;
+      } catch {
+        return mockArticles;
+      }
+    },
+    { fallbackData: mockArticles }
+  );
 
   if (isLoading) {
     return (
@@ -144,8 +168,31 @@ function ArticlesTab({ userId }: { userId: number }) {
 }
 
 function FavoritesTab({ userId }: { userId: number }) {
-  const articles = mockArticles.slice(0, 1);
-  const isLoading = false;
+  // Fetch user's favorites from API
+  const { data: articles = [], isLoading } = useSWR(
+    ["my-favorites", userId],
+    async () => {
+      try {
+        const articleIds = await userApi.getFavorites(userId);
+        if (articleIds && articleIds.length > 0) {
+          const articlePromises = articleIds.map(async (id) => {
+            try {
+              const result = await articleApi.getDetail(id);
+              return result.success ? result.data : null;
+            } catch {
+              return null;
+            }
+          });
+          const articlesData = await Promise.all(articlePromises);
+          return articlesData.filter((a): a is Article => a !== null);
+        }
+        return [];
+      } catch {
+        return [];
+      }
+    },
+    { fallbackData: [] }
+  );
 
   if (isLoading) {
     return (
