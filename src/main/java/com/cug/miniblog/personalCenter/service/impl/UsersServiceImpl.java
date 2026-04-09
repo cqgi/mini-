@@ -67,14 +67,15 @@ public class UsersServiceImpl implements UsersService {
         if (userId == null || articleId == null) {
             return false;
         }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return false;
+        }
         Article article = articleMapper.selectById(articleId);
         if (article == null) {
             return false;
         }
-        LambdaQueryWrapper<Collect> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Collect::getUserId, userId)
-                .eq(Collect::getArticleId, articleId);
-        Collect existCollect = collectMapper.selectOne(queryWrapper);
+        Collect existCollect = collectMapper.selectIncludingDeleted(userId, articleId);
         if (existCollect == null) {
             Collect collect = new Collect();
             collect.setUserId(userId);
@@ -82,8 +83,10 @@ public class UsersServiceImpl implements UsersService {
             collect.setCreateTime(LocalDateTime.now());
             return collectMapper.insert(collect) > 0;
         }
-        existCollect.setIsDeleted(0);
-        return collectMapper.updateById(existCollect) > 0;
+        if (Integer.valueOf(0).equals(existCollect.getIsDeleted())) {
+            return true;
+        }
+        return collectMapper.restoreDeletedById(existCollect.getCollectId()) > 0;
     }
 
     @Override
