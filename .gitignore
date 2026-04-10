@@ -1,3 +1,6 @@
 .idea/
 target/
 config.yaml
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
