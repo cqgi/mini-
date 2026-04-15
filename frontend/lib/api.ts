@@ -332,9 +332,14 @@ export const commentApi = {
     return unwrapResult<void>(payload);
   },
 
-  async reply(commentId: number, userId: number, content: string) {
+  async reply(
+    commentId: number,
+    commentUserId: number,
+    userId: number,
+    content: string
+  ) {
     const payload = await request<Result<void>>(
-      `/blog-comments/blog/${commentId}/${userId}/reply`,
+      `/blog-comments/blog/${commentId}/${commentUserId}/${userId}/reply`,
       {
         method: "POST",
         headers: {
