@@ -90,7 +90,7 @@ public class AuthServiceImpl  implements AuthService {
             throw new IllegalArgumentException("密码错误");
         }
         // 登录成功，返回令牌
-        return  user.getUsername();
+        return  user.getUserId().toString();
     }
     @Transactional
     @Override
@@ -117,6 +117,6 @@ public class AuthServiceImpl  implements AuthService {
             throw new IllegalArgumentException("密码错误");
         }
         // 登录成功，返回令牌
-        return  user.getUsername();
+        return  user.getUserId().toString();
     }
 }
