@@ -60,8 +60,8 @@ public class CommentsController {
     /**
      * 回复评论
      */
-    @PostMapping("/blog/{commentId}/{userId}/reply")
-    public Result replyComment(@PathVariable Long commentId, @PathVariable Long userId, @RequestBody String content) {
-        return commentService.replyComment(commentId, content, userId);
+    @PostMapping("/blog/{commentId}/{commentUserId}/{userId}/reply")
+    public Result replyComment(@PathVariable Long commentId,@PathVariable Long commentUserId, @PathVariable Long userId, @RequestBody String content) {
+        return commentService.replyComment(commentId, content,commentUserId, userId);
     }
 }

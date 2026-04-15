@@ -51,5 +51,5 @@ public interface ICommentsService extends IService<Comment> {
      * @param content,回复内容
      * @return
      */
-    Result replyComment(Long commentId,String content,Long userId);
+    Result replyComment(Long commentId,String content,Long commentUserId,Long userId);
 }

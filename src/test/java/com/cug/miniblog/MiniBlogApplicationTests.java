@@ -45,7 +45,7 @@ class MiniBlogApplicationTests {
     }
     @Test
     void testReplyComment() {
-        Result result = blogCommentsController.replyComment(14L, 1l, "This is a reply");
+        Result result = blogCommentsController.replyComment(14L, 1l, 2L,"this is a reply");
         System.out.println(result);
     }
     @Test

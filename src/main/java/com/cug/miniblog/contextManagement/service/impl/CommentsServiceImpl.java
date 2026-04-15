@@ -120,18 +120,18 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comment> im
      * @return 回复结果
      */
     @Override
-    public Result replyComment(Long commentId, String content, Long userId) {
+    public Result replyComment(Long commentId, String content, Long commentUserId,Long userId) {
         LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Comment::getCommentId, commentId)
-                .eq(Comment::getUserId, userId)
+                .eq(Comment::getUserId, commentUserId)
                 .eq(Comment::getIsDeleted, false);
         Comment comment = CommentsMapper.selectOne(wrapper);
         if (comment == null) {
             return Result.fail("回复的评论不存在");
         }
         Comment replyComment=new Comment();
-        replyComment.setUserId(userId);
         replyComment.setParentId(commentId);
+        replyComment.setUserId(userId);
         replyComment.setArticleId(comment.getArticleId());
         replyComment.setContent(content);
         replyComment.setIsDeleted(0);
