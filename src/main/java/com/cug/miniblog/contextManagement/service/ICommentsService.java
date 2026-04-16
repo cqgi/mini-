@@ -38,7 +38,7 @@ public interface ICommentsService extends IService<Comment> {
      * @param commentId,评论id
      * @return
      */
-   // Result likeComment(Long commentId);
+    Result likeComment(Long commentId);
     /**
      * 删除评论
      * @param commentId,评论id

@@ -2,6 +2,7 @@ package com.cug.miniblog.contextManagement.controller;
 
 import com.cug.miniblog.contextManagement.dto.Result;
 import com.cug.miniblog.common.entity.Comment;
+import com.cug.miniblog.contextManagement.service.ICommentsService;
 import com.cug.miniblog.contextManagement.service.impl.CommentsServiceImpl;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,7 @@ import java.util.List;
 public class CommentsController {
 
     @Resource
-    private CommentsServiceImpl commentService;
+    private ICommentsService commentService;
     /**
      * 发表评论
      */
@@ -46,10 +47,10 @@ public class CommentsController {
     /**
      * 点赞评论
      */
-//    @PutMapping("/blog/{commentId}/like")
-//    public Result likeComment(@PathVariable Long commentId) {
-//        return commentService.likeComment(commentId);
-//    }
+    @PutMapping("/blog/{commentId}/like")
+    public Result likeComment(@PathVariable Long commentId) {
+        return commentService.likeComment(commentId);
+    }
     /**
      * 删除评论
      */

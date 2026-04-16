@@ -73,24 +73,23 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comment> im
 
         return commentMap;
     }
-//    /**
-//     * 点赞评论
-//     * @param commentId 评论id
-//     * @return 点赞结果
-//     */
-//    @Override
-//    public Result likeComment(Long commentId) {
-//        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
-//        wrapper.eq(Comment::getCommentId, commentId)
-//                .eq(Comment::getIsDeleted, false);
-//        Comment comment = CommentsMapper.selectOne(wrapper);
-//        if (comment == null) {
-//            return Result.fail("评论不存在");
-//        }
-//        comment.setLiked(comment.getLiked()+1);
-//        CommentsMapper.update(comment,wrapper);
-//        return Result.ok("点赞成功");
-//    }
+    /**
+     * 点赞评论
+     * @param commentId 评论id
+     * @return 点赞结果
+     */
+   @Override
+    public Result likeComment(Long commentId) {
+        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Comment::getCommentId, commentId)
+                .eq(Comment::getIsDeleted, false);
+        Comment comment = CommentsMapper.selectOne(wrapper);
+        if (comment == null) {
+            return Result.fail("评论不存在");
+        }comment.setIsLiked(comment.getIsLiked()+1);
+        CommentsMapper.update(comment,wrapper);
+        return Result.ok("点赞成功");
+    }
     /**
      * 删除评论
      * @param commentId 评论id

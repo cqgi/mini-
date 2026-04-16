@@ -8,3 +8,9 @@ spring:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
+debug: false
+logging:
+  level:
+    root: info
+    org.springframework: warn
+    com.baomidou.mybatisplus: warn
