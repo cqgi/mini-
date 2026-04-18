@@ -16,15 +16,10 @@ interface CommentSectionProps {
   articleId: number;
 }
 
-interface ReplyTarget {
-  commentId: number;
-  commentUserId: number;
-}
-
 export function CommentSection({ articleId }: CommentSectionProps) {
   const { user, isAuthenticated } = useAuthStore();
   const [newComment, setNewComment] = useState("");
-  const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
+  const [replyTo, setReplyTo] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState("");
@@ -74,19 +69,14 @@ export function CommentSection({ articleId }: CommentSectionProps) {
     }
   };
 
-  const handleSubmitReply = async () => {
-    if (!replyContent.trim() || !user || !replyTarget) return;
+  const handleSubmitReply = async (parentId: number) => {
+    if (!replyContent.trim() || !user) return;
 
     setIsSubmitting(true);
     setActionError("");
     try {
-      await commentApi.reply(
-        replyTarget.commentId,
-        replyTarget.commentUserId,
-        user.userId,
-        replyContent
-      );
-      setReplyTarget(null);
+      await commentApi.reply(parentId, user.userId, replyContent);
+      setReplyTo(null);
       setReplyContent("");
       mutate();
     } catch (requestError) {
@@ -191,13 +181,13 @@ export function CommentSection({ articleId }: CommentSectionProps) {
               comment={comment}
               tree={commentTree}
               currentUserId={user?.userId}
-              replyTarget={replyTarget}
+              replyTo={replyTo}
               replyContent={replyContent}
               isAuthenticated={isAuthenticated}
               isSubmitting={isSubmitting}
-              onReply={setReplyTarget}
+              onReply={() => setReplyTo(comment.commentId)}
               onCancelReply={() => {
-                setReplyTarget(null);
+                setReplyTo(null);
                 setReplyContent("");
               }}
               onReplyContentChange={setReplyContent}
@@ -300,14 +290,14 @@ interface CommentThreadProps {
   comment: Comment;
   tree: Record<string, Comment[]>;
   currentUserId?: number;
-  replyTarget: ReplyTarget | null;
+  replyTo: number | null;
   replyContent: string;
   isAuthenticated: boolean;
   isSubmitting: boolean;
-  onReply: (comment: ReplyTarget) => void;
+  onReply: () => void;
   onCancelReply: () => void;
   onReplyContentChange: (value: string) => void;
-  onSubmitReply: () => void;
+  onSubmitReply: (commentId: number) => void;
   onDelete: (commentId: number) => void;
 }
 
@@ -315,7 +305,7 @@ function CommentThread({
   comment,
   tree,
   currentUserId,
-  replyTarget,
+  replyTo,
   replyContent,
   isAuthenticated,
   isSubmitting,
@@ -332,17 +322,12 @@ function CommentThread({
       <CommentItem
         comment={comment}
         currentUserId={currentUserId}
-        onReply={() =>
-          onReply({
-            commentId: comment.commentId,
-            commentUserId: comment.userId,
-          })
-        }
+        onReply={onReply}
         onDelete={() => onDelete(comment.commentId)}
       />
 
       <AnimatePresence initial={false}>
-        {replyTarget?.commentId === comment.commentId && isAuthenticated && (
+        {replyTo === comment.commentId && isAuthenticated && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -355,7 +340,7 @@ function CommentThread({
                 <textarea
                   value={replyContent}
                   onChange={(e) => onReplyContentChange(e.target.value)}
-                  placeholder={`回复用户 #${comment.userId}...`}
+                  placeholder="写下你的回复..."
                   className="w-full h-20 px-4 py-3 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
                   autoFocus
                 />
@@ -367,7 +352,7 @@ function CommentThread({
                     取消
                   </button>
                   <button
-                    onClick={onSubmitReply}
+                    onClick={() => onSubmitReply(comment.commentId)}
                     disabled={!replyContent.trim() || isSubmitting}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
@@ -393,11 +378,11 @@ function CommentThread({
               comment={reply}
               tree={tree}
               currentUserId={currentUserId}
-              replyTarget={replyTarget}
+              replyTo={replyTo}
               replyContent={replyContent}
               isAuthenticated={isAuthenticated}
               isSubmitting={isSubmitting}
-              onReply={onReply}
+              onReply={() => onReply()}
               onCancelReply={onCancelReply}
               onReplyContentChange={onReplyContentChange}
               onSubmitReply={onSubmitReply}

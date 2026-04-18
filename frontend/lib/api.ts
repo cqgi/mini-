@@ -68,11 +68,22 @@ async function request<T = unknown>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
+
+  // ====================== 这里自动加 token ======================
+  const headers = new Headers(options.headers || {});
+
+  // 客户端才存在 localStorage，服务端不执行
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+  }
+  // ===============================================================
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      ...options.headers,
-    },
+    headers, // 用带了 token 的 headers
   });
 
   const payload = await parseResponse(response);
@@ -332,14 +343,9 @@ export const commentApi = {
     return unwrapResult<void>(payload);
   },
 
-  async reply(
-    commentId: number,
-    commentUserId: number,
-    userId: number,
-    content: string
-  ) {
+  async reply(commentId: number, userId: number, content: string) {
     const payload = await request<Result<void>>(
-      `/blog-comments/blog/${commentId}/${commentUserId}/${userId}/reply`,
+      `/blog-comments/blog/${commentId}/${userId}/reply`,
       {
         method: "POST",
         headers: {
@@ -354,99 +360,77 @@ export const commentApi = {
 };
 
 export const userApi = {
+  // 登录 —— 不变
   async login(username: string, password: string) {
     const params = new URLSearchParams({ username, password });
     const payload = await request<string>(`/auth/login?${params}`, {
       method: "POST",
     });
-    return typeof payload === "string" ? payload : String(payload ?? "");
+    const token = String(payload ?? "").trim();
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+    return token;
   },
 
+  // 注册
   async register(username: string, email: string, password: string) {
     const params = new URLSearchParams({ username, email, password });
     return request<User>(`/auth/register?${params}`, { method: "POST" });
   },
 
-  async getProfile(userId: number) {
-    const params = new URLSearchParams({ userId: String(userId) });
-    return request<User>(`/users/profile?${params}`);
+  // 获取个人资料
+  async getProfile() {
+    return request<User>("/users/profile");
   },
 
-  async updateProfile(
-    userId: number,
-    data: {
-      nickname?: string;
-      avatar?: string;
-      bio?: string;
-    }
-  ) {
-    const params = new URLSearchParams({ userId: String(userId) });
-    params.set("nickname", data.nickname ?? "");
-    params.set("avatar", data.avatar ?? "");
-    params.set("bio", data.bio ?? "");
-
-    const payload = await request<boolean>(`/users/profile?${params}`, {
+  // 修改资料
+  async updateProfile(data: {
+    nickname?: string;
+    avatar?: string;
+    bio?: string;
+  }) {
+    const payload = await request<boolean>("/users/profile", {
       method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
-
-    if (payload !== true) {
-      throw new Error("资料更新失败，请检查昵称、头像和简介是否符合后端规则");
-    }
-
+    if (payload !== true) throw new Error("资料更新失败");
     return true;
   },
 
-  async getMyArticles(userId: number, status?: string) {
-    const params = new URLSearchParams({ userId: String(userId) });
-    if (status && status !== "all") {
-      params.set("status", status);
-    }
-
-    const payload = await request<number[]>(`/users/articles?${params}`);
-    return Array.isArray(payload) ? payload : [];
+  // 我的文章
+  async getMyArticles(status?: string) {
+    const params = new URLSearchParams();
+    if (status && status !== "all") params.set("status", status);
+    return request<number[]>(`/users/articles?${params}`);
   },
 
-  async getMyComments(userId: number) {
-    const params = new URLSearchParams({ userId: String(userId) });
-    const payload = await request<number[]>(`/users/comments?${params}`);
-    return Array.isArray(payload) ? payload : [];
+  // 我的评论
+  async getMyComments() {
+    return request<number[]>("/users/comments");
   },
 
-  async getFavorites(userId: number) {
-    const params = new URLSearchParams({ userId: String(userId) });
-    const payload = await request<number[]>(`/users/favorites?${params}`);
-    return Array.isArray(payload) ? payload : [];
+  // 我的收藏
+  async getFavorites() {
+    return request<number[]>("/users/favorites");
   },
 
-  async collectArticle(userId: number, articleId: number) {
-    const params = new URLSearchParams({ userId: String(userId) });
-    const payload = await request<boolean>(
-      `/users/favorites/${articleId}?${params}`,
-      {
-        method: "POST",
-      }
-    );
-
-    if (payload !== true) {
-      throw new Error("收藏失败");
-    }
-
+  // 收藏文章
+  async collectArticle(articleId: number) {
+    const payload = await request<boolean>(`/users/favorites/${articleId}`, {
+      method: "POST",
+    });
+    if (payload !== true) throw new Error("收藏失败");
     return true;
   },
 
-  async cancelCollect(userId: number, articleId: number) {
-    const params = new URLSearchParams({ userId: String(userId) });
-    const payload = await request<boolean>(
-      `/users/favorites/${articleId}?${params}`,
-      {
-        method: "DELETE",
-      }
-    );
-
-    if (payload !== true) {
-      throw new Error("取消收藏失败");
-    }
-
+  // 取消收藏
+  async cancelCollect(articleId: number) {
+    const payload = await request<boolean>(`/users/favorites/${articleId}`, {
+      method: "DELETE",
+    });
+    if (payload !== true) throw new Error("取消收藏失败");
     return true;
   },
 };

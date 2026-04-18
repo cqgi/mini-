@@ -52,12 +52,12 @@ function LoginPageContent() {
       const resolvedUserId =
         Number(formData.userId) || rememberedAccount?.userId || 0;
 
-      if (!resolvedUserId) {
-        setError("当前后端登录接口不会返回 userId，请填写联调用户 ID");
-        return;
-      }
+      // if (!resolvedUserId) {
+      //   setError("当前后端登录接口不会返回 userId，请填写联调用户 ID");
+      //   return;
+      // }
 
-      const profile = await userApi.getProfile(resolvedUserId);
+      const profile = await userApi.getProfile();
 
       if (profile.username !== formData.username.trim()) {
         setError("填写的 userId 和用户名不匹配，请检查后重试");

@@ -34,7 +34,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
     setIsLoading(true);
     setStatus("");
     try {
-      const success = await userApi.updateProfile(user.userId, formData);
+      const success = await userApi.updateProfile(formData);
       if (success) {
         updateUser(formData);
         setIsEditing(false);

@@ -58,8 +58,10 @@ export const useAuthStore = create<AuthState>()(
         })),
       findKnownAccount: (username) =>
         get().knownAccounts.find((account) => account.username === username),
-      logout: () =>
-        set({ user: null, isAuthenticated: false, loginMessage: null }),
+      logout: () => {
+        localStorage.removeItem("token");
+        set({ user: null, isAuthenticated: false, loginMessage: null });
+      },
       updateUser: (updates) =>
         set((state) => {
           if (!state.user) {

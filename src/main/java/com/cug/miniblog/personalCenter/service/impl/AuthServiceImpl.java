@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.cug.miniblog.common.entity.User;
 import com.cug.miniblog.personalCenter.mapper.UserMapper;
 import com.cug.miniblog.personalCenter.service.AuthService;
+import com.cug.miniblog.personalCenter.utils.JwtUtil;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,8 +90,10 @@ public class AuthServiceImpl  implements AuthService {
         if (!user.getPassword().equals(password)) {
             throw new IllegalArgumentException("密码错误");
         }
+        // 生成JWT令牌
+        String token = JwtUtil.generateToken(user.getUserId());
         // 登录成功，返回令牌
-        return  user.getUserId().toString();
+        return  token;
     }
     @Transactional
     @Override
@@ -116,7 +119,9 @@ public class AuthServiceImpl  implements AuthService {
         if (!user.getPassword().equals(password)) {
             throw new IllegalArgumentException("密码错误");
         }
+        // 生成JWT令牌
+        String token = JwtUtil.generateToken(user.getUserId());
         // 登录成功，返回令牌
-        return  user.getUserId().toString();
+        return  token;
     }
 }

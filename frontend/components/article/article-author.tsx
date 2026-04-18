@@ -21,7 +21,7 @@ export function ArticleAuthor({ article }: ArticleAuthorProps) {
 
   const { data: favorites = [], mutate } = useSWR(
     user ? ["article-favorites", user.userId] : null,
-    () => userApi.getFavorites(user!.userId),
+    () => userApi.getFavorites(),
     {
       revalidateOnFocus: false,
     }
@@ -40,14 +40,14 @@ export function ArticleAuthor({ article }: ArticleAuthorProps) {
 
     try {
       if (isCollected) {
-        await userApi.cancelCollect(user.userId, article.articleId);
+        await userApi.cancelCollect( article.articleId);
         await mutate(
           favorites.filter((favoriteId) => favoriteId !== article.articleId),
           false
         );
         setStatusMessage("已取消收藏");
       } else {
-        await userApi.collectArticle(user.userId, article.articleId);
+        await userApi.collectArticle( article.articleId);
         await mutate([...favorites, article.articleId], false);
         setStatusMessage("已加入收藏");
       }

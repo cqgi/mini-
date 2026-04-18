@@ -88,7 +88,6 @@ function ArticlesTab({ userId }: { userId: number }) {
     isLoading,
   } = useSWR(["profile-articles", userId, statusFilter], async () => {
     const ids = await userApi.getMyArticles(
-      userId,
       statusFilter === "all" ? undefined : statusFilter
     );
 
@@ -179,7 +178,7 @@ function FavoritesTab({ userId }: { userId: number }) {
     error,
     isLoading,
   } = useSWR(["profile-favorites", userId], async () => {
-    const ids = await userApi.getFavorites(userId);
+    const ids = await userApi.getFavorites();
 
     return Promise.all(
       ids.map(async (articleId) => {
@@ -244,7 +243,7 @@ function CommentsTab({ userId }: { userId: number }) {
     data: commentIds = [],
     error,
     isLoading,
-  } = useSWR(["profile-comments", userId], () => userApi.getMyComments(userId));
+  } = useSWR(["profile-comments", userId], () => userApi.getMyComments());
 
   if (isLoading) {
     return (
