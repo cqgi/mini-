@@ -71,7 +71,7 @@ public class AuthServiceImpl  implements AuthService {
         if (username == null || password == null) {
             throw new IllegalArgumentException("用户名或密码不能为空");
         }
-        if(username.isBlank()||password.isBlank()){
+        if(username.isBlank() || password.isBlank()){
             throw new IllegalArgumentException("用户名或密码不能为空");
         }
         //检查标准
