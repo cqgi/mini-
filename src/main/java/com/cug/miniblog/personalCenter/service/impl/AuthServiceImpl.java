@@ -26,7 +26,7 @@ public class AuthServiceImpl  implements AuthService {
     @Override
     public User register(String username, String email, String password) {
         // 是否为空
-        if(username==null || email==null || password==null || username.isBlank() || email.isBlank() || password.isBlank()){
+        if(username==null||email==null||password==null||username.isBlank()||email.isBlank()||password.isBlank()){
             throw new IllegalArgumentException("用户名、邮箱、密码不能为空");
         }
         // 检查标准
@@ -71,7 +71,7 @@ public class AuthServiceImpl  implements AuthService {
         if (username == null || password == null) {
             throw new IllegalArgumentException("用户名或密码不能为空");
         }
-        if(username.isBlank() || password.isBlank()){
+        if(username.isBlank()||password.isBlank()){
             throw new IllegalArgumentException("用户名或密码不能为空");
         }
         //检查标准
