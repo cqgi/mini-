@@ -16,6 +16,12 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState("");
+  const displayName = (user.nickname || user.username || "User").trim();
+  const displayInitial = displayName
+    ? displayName.charAt(0).toUpperCase()
+    : "U";
+  const joinedDate = formatDate(user.createTime);
+  const joinedDateLabel = joinedDate === "时间未知" ? joinedDate : `${joinedDate} 加入`;
   const [formData, setFormData] = useState({
     nickname: user.nickname || "",
     avatar: user.avatar || "",
@@ -62,12 +68,12 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
               {user.avatar ? (
                 <img
                   src={user.avatar}
-                  alt={user.nickname || user.username}
+                  alt={displayName}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <span className="text-3xl sm:text-4xl font-bold text-muted-foreground">
-                  {(user.nickname || user.username).charAt(0).toUpperCase()}
+                  {displayInitial}
                 </span>
               )}
             </div>
@@ -160,9 +166,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                   <p>用户 ID：{user.userId}</p>
                   <p>{user.email}</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {formatDate(user.createTime)} 加入
-                </p>
+                <p className="text-xs text-muted-foreground mt-2">{joinedDateLabel}</p>
               </>
             )}
           </div>

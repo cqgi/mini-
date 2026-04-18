@@ -166,6 +166,9 @@ export interface Comment {
 export interface Tag {
   tagId: number;
   tagName: string;
+  articleCount?: number;
+  createTime?: string;
+  updateTime?: string;
 }
 
 export interface Category {
@@ -192,6 +195,7 @@ export const articleApi = {
     page?: number;
     size?: number;
     categoryId?: number;
+    tagId?: number;
     keyword?: string;
     isTop?: number;
     status?: number;
@@ -204,6 +208,9 @@ export const articleApi = {
     searchParams.set("size", String(size));
     if (params?.categoryId) {
       searchParams.set("categoryId", String(params.categoryId));
+    }
+    if (params?.tagId) {
+      searchParams.set("tagId", String(params.tagId));
     }
     if (params?.keyword?.trim()) {
       searchParams.set("keyword", params.keyword.trim());
@@ -283,6 +290,68 @@ export const articleApi = {
 
   async delete(articleId: number) {
     const payload = await request<Result<number>>(`/articles/${articleId}`, {
+      method: "DELETE",
+    });
+    return unwrapResult<number>(payload);
+  },
+};
+
+export const tagApi = {
+  async getList(params?: {
+    current?: number;
+    size?: number;
+    keyword?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+    const current = params?.current ?? 1;
+    const size = params?.size ?? 10;
+
+    searchParams.set("current", String(current));
+    searchParams.set("size", String(size));
+    if (params?.keyword?.trim()) {
+      searchParams.set("keyword", params.keyword.trim());
+    }
+
+    const payload = await request<Result<Tag[]>>(`/tags?${searchParams.toString()}`);
+    const { data, total } = unwrapResult<Tag[]>(payload);
+
+    return {
+      items: Array.isArray(data) ? data : [],
+      total: total ?? 0,
+      current,
+      size,
+    };
+  },
+
+  async getDetail(tagId: number) {
+    const payload = await request<Result<Tag>>(`/tags/${tagId}`);
+    return unwrapResult<Tag>(payload).data;
+  },
+
+  async create(data: { tagName: string }) {
+    const payload = await request<Result<number>>("/tags", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return unwrapResult<number>(payload);
+  },
+
+  async update(tagId: number, data: { tagName: string }) {
+    const payload = await request<Result<number>>(`/tags/${tagId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return unwrapResult<number>(payload);
+  },
+
+  async delete(tagId: number) {
+    const payload = await request<Result<number>>(`/tags/${tagId}`, {
       method: "DELETE",
     });
     return unwrapResult<number>(payload);

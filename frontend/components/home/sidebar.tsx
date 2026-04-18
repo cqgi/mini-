@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { TrendingUp, Tag, Folder, Users, Loader2 } from "lucide-react";
-import { articleApi } from "@/lib/api";
+import { articleApi, tagApi } from "@/lib/api";
 import { formatViewCount } from "@/lib/utils";
 import { TransitionLink } from "@/components/ui/transition-link";
 
@@ -10,6 +10,17 @@ export function Sidebar() {
   const { data, error, isLoading } = useSWR(
     ["home-sidebar"],
     () => articleApi.getList({ current: 1, size: 30 }),
+    {
+      revalidateOnFocus: false,
+    }
+  );
+  const {
+    data: tagData,
+    error: tagError,
+    isLoading: isTagsLoading,
+  } = useSWR(
+    ["home-sidebar-tags"],
+    () => tagApi.getList({ current: 1, size: 100 }),
     {
       revalidateOnFocus: false,
     }
@@ -26,15 +37,12 @@ export function Sidebar() {
       views: article.viewCount,
     }));
 
-  const popularTags = Array.from(
-    articles.reduce((accumulator, article) => {
-      article.tagNames.forEach((tagName) => {
-        accumulator.set(tagName, (accumulator.get(tagName) ?? 0) + 1);
-      });
-      return accumulator;
-    }, new Map<string, number>())
-  )
-    .sort((left, right) => right[1] - left[1])
+  const popularTags = [...(tagData?.items ?? [])]
+    .sort(
+      (left, right) =>
+        (right.articleCount ?? 0) - (left.articleCount ?? 0) ||
+        left.tagName.localeCompare(right.tagName, "zh-CN")
+    )
     .slice(0, 8);
 
   const categories = Array.from(
@@ -132,14 +140,20 @@ export function Sidebar() {
           <h3 className="font-semibold text-foreground">热门标签</h3>
         </div>
         <div className="flex flex-wrap gap-2">
-          {popularTags.length > 0 ? (
-            popularTags.map(([tagName, count]) => (
-              <span
-                key={tagName}
-                className="px-3 py-1.5 bg-muted text-muted-foreground text-sm rounded-lg"
+          {tagError ? (
+            <span className="text-sm text-destructive">标签加载失败</span>
+          ) : isTagsLoading ? (
+            <span className="text-sm text-muted-foreground">正在加载标签...</span>
+          ) : popularTags.length > 0 ? (
+            popularTags.map((tag) => (
+              <TransitionLink
+                key={tag.tagId}
+                href={`/explore?tagId=${tag.tagId}`}
+                transition="scaleFade"
+                className="px-3 py-1.5 bg-muted text-muted-foreground text-sm rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
               >
-                {tagName} · {count}
-              </span>
+                {tag.tagName} · {tag.articleCount ?? 0}
+              </TransitionLink>
             ))
           ) : (
             <span className="text-sm text-muted-foreground">暂无标签数据</span>

@@ -10,7 +10,7 @@ import { TransitionLink } from "@/components/ui/transition-link";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, login } = useAuthStore();
+  const { user, isAuthenticated, login, logout } = useAuthStore();
   const [activeTab, setActiveTab] = useState<"articles" | "favorites" | "comments">("articles");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,7 +29,10 @@ export default function ProfilePage() {
       setError("");
 
       try {
-        const profile = await userApi.getProfile(currentUserId);
+        const profile = await userApi.getProfile();
+        if (!profile?.userId || !profile.username) {
+          throw new Error("用户不存在或已失效，请重新登录");
+        }
         if (!cancelled) {
           login(profile);
         }
@@ -40,6 +43,7 @@ export default function ProfilePage() {
               ? requestError.message
               : "读取个人资料失败"
           );
+          logout();
         }
       } finally {
         if (!cancelled) {
@@ -53,7 +57,7 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.userId, login]);
+  }, [user?.userId, login, logout]);
 
   // Redirect if not authenticated
   if (!isAuthenticated || !user) {

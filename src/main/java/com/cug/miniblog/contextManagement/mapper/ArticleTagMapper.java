@@ -54,6 +54,34 @@ public interface ArticleTagMapper extends BaseMapper<ArticleTag> {
     List<ArticleTagQueryRow> selectTagsByArticleIds(@Param("articleIds") List<Long> articleIds);
 
     /**
+     * 根据标签 ID 查询绑定的文章 ID。
+     */
+    @Select({
+            "SELECT DISTINCT article_id ",
+            "FROM t_article_tag ",
+            "WHERE is_deleted = 0 AND tag_id = #{tagId}"
+    })
+    List<Long> selectArticleIdsByTagId(@Param("tagId") Long tagId);
+
+    /**
+     * 查询标签下已发布文章数量。
+     */
+    @Select({
+            "<script>",
+            "SELECT at.tag_id AS tagId, COUNT(DISTINCT at.article_id) AS articleCount ",
+            "FROM t_article_tag at ",
+            "JOIN t_article a ON at.article_id = a.article_id ",
+            "WHERE at.is_deleted = 0 AND a.is_deleted = 0 AND a.status = 1 ",
+            "AND at.tag_id IN ",
+            "<foreach collection='tagIds' item='tagId' open='(' separator=',' close=')'>",
+            "#{tagId}",
+            "</foreach> ",
+            "GROUP BY at.tag_id",
+            "</script>"
+    })
+    List<TagArticleCountRow> selectPublishedArticleCountsByTagIds(@Param("tagIds") List<Long> tagIds);
+
+    /**
      * 文章标签查询行对象
      */
     class ArticleTagQueryRow {
@@ -83,6 +111,27 @@ public interface ArticleTagMapper extends BaseMapper<ArticleTag> {
 
         public void setTagName(String tagName) {
             this.tagName = tagName;
+        }
+    }
+
+    class TagArticleCountRow {
+        private Long tagId;
+        private Long articleCount;
+
+        public Long getTagId() {
+            return tagId;
+        }
+
+        public void setTagId(Long tagId) {
+            this.tagId = tagId;
+        }
+
+        public Long getArticleCount() {
+            return articleCount;
+        }
+
+        public void setArticleCount(Long articleCount) {
+            this.articleCount = articleCount;
         }
     }
 }

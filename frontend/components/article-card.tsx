@@ -26,6 +26,7 @@ export function ArticleCard({
   const detailHref =
     href ?? (Number(article.status) === 1 ? `/article/${article.articleId}` : undefined);
   const hasCover = Boolean(article.cover?.trim()) && !coverFailed;
+  const articleTags = article.tags?.length ? article.tags.slice(0, 2) : [];
 
   useEffect(() => {
     setCoverFailed(false);
@@ -126,14 +127,25 @@ export function ArticleCard({
               {article.categoryName}
             </span>
           )}
-          {article.tagNames?.slice(0, 2).map((tag) => (
-            <span
-              key={tag}
-              className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded"
-            >
-              {tag}
-            </span>
-          ))}
+          {articleTags.length > 0
+            ? articleTags.map((tag) => (
+                <TransitionLink
+                  key={tag.tagId}
+                  href={`/explore?tagId=${tag.tagId}`}
+                  transition="scaleFade"
+                  className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded hover:bg-primary/10 hover:text-primary transition-colors"
+                >
+                  {tag.tagName}
+                </TransitionLink>
+              ))
+            : article.tagNames?.slice(0, 2).map((tag) => (
+                <span
+                  key={tag}
+                  className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded"
+                >
+                  {tag}
+                </span>
+              ))}
         </div>
 
         {/* Title */}

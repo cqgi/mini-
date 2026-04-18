@@ -61,10 +61,15 @@ public class ArticleServiceImpl implements IArticleService {
     public Result listPublishedArticles(ArticleQueryDTO articleQueryDTO) {
         ArticleQueryDTO queryDTO = normalizeQuery(articleQueryDTO);
         String keyword = normalizeKeyword(queryDTO.getKeyword());
+        List<Long> articleIds = queryArticleIdsByTagId(queryDTO.getTagId());
+        if (queryDTO.getTagId() != null && CollectionUtils.isEmpty(articleIds)) {
+            return Result.ok(Collections.emptyList(), 0L);
+        }
         Page<Article> page = new Page<>(queryDTO.getCurrent(), queryDTO.getSize());
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Article::getStatus, 1)
                 .eq(queryDTO.getCategoryId() != null, Article::getCategoryId, queryDTO.getCategoryId())
+                .in(queryDTO.getTagId() != null, Article::getArticleId, articleIds)
                 .eq(queryDTO.getIsTop() != null, Article::getIsTop, queryDTO.getIsTop())
                 .like(StringUtils.hasText(keyword), Article::getTitle, keyword)
                 .orderByDesc(Article::getIsTop)
@@ -99,9 +104,14 @@ public class ArticleServiceImpl implements IArticleService {
     public Result listAdminArticles(ArticleQueryDTO articleQueryDTO) {
         ArticleQueryDTO queryDTO = normalizeQuery(articleQueryDTO);
         String keyword = normalizeKeyword(queryDTO.getKeyword());
+        List<Long> articleIds = queryArticleIdsByTagId(queryDTO.getTagId());
+        if (queryDTO.getTagId() != null && CollectionUtils.isEmpty(articleIds)) {
+            return Result.ok(Collections.emptyList(), 0L);
+        }
         Page<Article> page = new Page<>(queryDTO.getCurrent(), queryDTO.getSize());
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(queryDTO.getCategoryId() != null, Article::getCategoryId, queryDTO.getCategoryId())
+                .in(queryDTO.getTagId() != null, Article::getArticleId, articleIds)
                 .eq(queryDTO.getStatus() != null, Article::getStatus, queryDTO.getStatus())
                 .eq(queryDTO.getIsTop() != null, Article::getIsTop, queryDTO.getIsTop())
                 .like(StringUtils.hasText(keyword), Article::getTitle, keyword)
@@ -322,6 +332,9 @@ public class ArticleServiceImpl implements IArticleService {
         if (queryDTO.getSize() == null || queryDTO.getSize() < 1) {
             queryDTO.setSize(10L);
         }
+        if (queryDTO.getTagId() != null && queryDTO.getTagId() < 1) {
+            queryDTO.setTagId(null);
+        }
         return queryDTO;
     }
 
@@ -343,6 +356,7 @@ public class ArticleServiceImpl implements IArticleService {
             ArticleListVO articleListVO = new ArticleListVO();
             fillBaseArticleInfo(articleListVO, article, userMap, categoryMap);
             List<ArticleTagVO> tagVOList = articleTagMap.getOrDefault(article.getArticleId(), Collections.emptyList());
+            articleListVO.setTags(tagVOList);
             articleListVO.setTagNames(tagVOList.stream().map(ArticleTagVO::getTagName).toList());
             result.add(articleListVO);
         }
@@ -421,6 +435,13 @@ public class ArticleServiceImpl implements IArticleService {
                     .add(new ArticleTagVO(queryRow.getTagId(), queryRow.getTagName()));
         }
         return articleTagMap;
+    }
+
+    private List<Long> queryArticleIdsByTagId(Long tagId) {
+        if (tagId == null) {
+            return Collections.emptyList();
+        }
+        return articleTagMapper.selectArticleIdsByTagId(tagId);
     }
 
     /**

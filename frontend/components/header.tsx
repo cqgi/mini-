@@ -22,6 +22,10 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const displayName = (user?.nickname || user?.username || "User").trim();
+  const displayInitial = displayName
+    ? displayName.charAt(0).toUpperCase()
+    : "U";
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,13 +122,13 @@ export function Header() {
                     {user.avatar ? (
                       <img
                         src={user.avatar}
-                        alt={user.nickname || user.username}
+                        alt={displayName}
                         className="w-8 h-8 rounded-full object-cover"
                       />
                     ) : (
                       <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
                         <span className="text-xs font-medium text-muted-foreground">
-                          {(user.nickname || user.username).charAt(0).toUpperCase()}
+                          {displayInitial}
                         </span>
                       </div>
                     )}
