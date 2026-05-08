@@ -82,10 +82,15 @@ async function request<T = unknown>(
   }
   // ===============================================================
 
-  const response = await fetch(url, {
-    ...options,
-    headers, // 用带了 token 的 headers
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers, // 用带了 token 的 headers
+    });
+  } catch {
+    throw new Error("无法连接服务，请确认前端代理和后端服务已启动");
+  }
 
   const payload = await parseResponse(response);
 
@@ -223,6 +228,33 @@ export interface Result<T = unknown> {
 export interface UploadedFile {
   objectKey: string;
   url: string;
+}
+
+export interface PrivateMessage {
+  id: number;
+  senderId: number;
+  receiverId?: number;
+  senderName: string;
+  senderAvatar: string;
+  content: string;
+  sendTime: string;
+  isRead: number;
+  mine?: boolean;
+}
+
+export interface MessageContact {
+  userId: number;
+  username: string;
+  nickname: string;
+  avatar: string;
+}
+
+interface BackendPage<T> {
+  records?: T[];
+  total?: number;
+  size?: number;
+  current?: number;
+  pages?: number;
 }
 
 export const articleApi = {
@@ -638,9 +670,14 @@ export const commentApi = {
     return unwrapResult<void>(payload);
   },
 
-  async reply(commentId: number, userId: number, content: string) {
+  async reply(
+    commentId: number,
+    commentUserId: number,
+    userId: number,
+    content: string
+  ) {
     const payload = await request<Result<void>>(
-      `/blog-comments/blog/${commentId}/${userId}/reply`,
+      `/blog-comments/blog/${commentId}/${commentUserId}/${userId}/reply`,
       {
         method: "POST",
         headers: {
@@ -795,6 +832,107 @@ export const userApi = {
     });
     if (payload !== true) throw new Error("取消收藏失败");
     return true;
+  },
+};
+
+export const messageApi = {
+  async getInbox(params?: { pageNum?: number; pageSize?: number }) {
+    const pageNum = params?.pageNum ?? 1;
+    const pageSize = params?.pageSize ?? 10;
+    const searchParams = new URLSearchParams({
+      pageNum: String(pageNum),
+      pageSize: String(pageSize),
+    });
+
+    const payload = await request<Result<BackendPage<PrivateMessage>>>(
+      `/messages/page?${searchParams.toString()}`
+    );
+    const page = unwrapResult<BackendPage<PrivateMessage>>(payload).data;
+
+    return {
+      items: Array.isArray(page?.records) ? page.records : [],
+      total: typeof page?.total === "number" ? page.total : 0,
+      current: typeof page?.current === "number" ? page.current : pageNum,
+      size: typeof page?.size === "number" ? page.size : pageSize,
+      pages: typeof page?.pages === "number" ? page.pages : 0,
+    };
+  },
+
+  async getContacts(keyword?: string) {
+    const searchParams = new URLSearchParams();
+    if (keyword?.trim()) {
+      searchParams.set("keyword", keyword.trim());
+    }
+
+    const suffix = searchParams.toString() ? `?${searchParams.toString()}` : "";
+    const payload = await request<Result<MessageContact[]>>(
+      `/messages/contacts${suffix}`
+    );
+    const { data } = unwrapResult<MessageContact[]>(payload);
+    return Array.isArray(data) ? data : [];
+  },
+
+  async getConversation(contactId: number, params?: { pageNum?: number; pageSize?: number }) {
+    const pageNum = params?.pageNum ?? 1;
+    const pageSize = params?.pageSize ?? 50;
+    const searchParams = new URLSearchParams({
+      pageNum: String(pageNum),
+      pageSize: String(pageSize),
+    });
+    const payload = await request<Result<BackendPage<PrivateMessage>>>(
+      `/messages/conversation/${contactId}?${searchParams.toString()}`
+    );
+    const page = unwrapResult<BackendPage<PrivateMessage>>(payload).data;
+
+    return {
+      items: Array.isArray(page?.records) ? page.records : [],
+      total: typeof page?.total === "number" ? page.total : 0,
+      current: typeof page?.current === "number" ? page.current : pageNum,
+      size: typeof page?.size === "number" ? page.size : pageSize,
+      pages: typeof page?.pages === "number" ? page.pages : 0,
+    };
+  },
+
+  async send(receiverId: number, content: string) {
+    const searchParams = new URLSearchParams({
+      receiverId: String(receiverId),
+      content,
+    });
+    const payload = await request<Result<void>>(
+      "/messages/send",
+      {
+        method: "POST",
+        body: searchParams,
+      }
+    );
+    return unwrapResult<void>(payload);
+  },
+
+  async markRead(ids: number[]) {
+    const payload = await request<Result<void>>("/messages/batch-read", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(ids),
+    });
+    return unwrapResult<void>(payload);
+  },
+
+  async delete(ids: number[]) {
+    const payload = await request<Result<void>>("/messages/batch-delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(ids),
+    });
+    return unwrapResult<void>(payload);
+  },
+
+  async getDetail(id: number) {
+    const payload = await request<Result<PrivateMessage>>(`/messages/detail/${id}`);
+    return unwrapResult<PrivateMessage>(payload).data;
   },
 };
 

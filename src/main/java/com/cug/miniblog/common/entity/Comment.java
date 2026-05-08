@@ -1,6 +1,7 @@
 package com.cug.miniblog.common.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -23,6 +24,7 @@ public class Comment implements Serializable {
 
     private Long parentId;
 
+    @TableField(exist = false)
     private Long isLiked;
 
     private String content;

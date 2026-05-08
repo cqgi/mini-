@@ -102,9 +102,8 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comment> im
         Comment comment = CommentsMapper.selectOne(wrapper);
         if (comment == null) {
             return Result.fail("评论不存在");
-        }comment.setIsLiked(comment.getIsLiked()+1);
-        CommentsMapper.update(comment,wrapper);
-        return Result.ok("点赞成功");
+        }
+        return Result.fail("当前数据库未配置评论点赞字段");
     }
     /**
      * 删除评论

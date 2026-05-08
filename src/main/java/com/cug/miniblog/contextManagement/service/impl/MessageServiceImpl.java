@@ -1,6 +1,7 @@
 package com.cug.miniblog.contextManagement.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -75,8 +76,11 @@ public class MessageServiceImpl extends ServiceImpl<PrivateMessageMapper, Privat
         // 2. 提取所有发送者ID，批量查询用户（性能高）
         List<PrivateMessage> records = messagePage.getRecords();
         Set<Long> senderIds = records.stream().map(PrivateMessage::getSenderId).collect(Collectors.toSet());
-        List<User> userList = userMapper.selectBatchIds(senderIds);
-        Map<Long, User> userMap = userList.stream().collect(Collectors.toMap(User::getUserId, u -> u));
+        Map<Long, User> userMap = Collections.emptyMap();
+        if (!senderIds.isEmpty()) {
+            List<User> userList = userMapper.selectBatchIds(senderIds);
+            userMap = userList.stream().collect(Collectors.toMap(User::getUserId, u -> u));
+        }
 
         // 3. 组装数据：私信 + 发送者昵称+头像
         List<Map<String, Object>> resultList = new ArrayList<>();
@@ -101,6 +105,41 @@ public class MessageServiceImpl extends ServiceImpl<PrivateMessageMapper, Privat
         Page<Map<String, Object>> resultPage = new Page<>(pageNum, pageSize);
         resultPage.setRecords(resultList);
         resultPage.setTotal(messagePage.getTotal());
+        return resultPage;
+    }
+
+    @Override
+    public Page<Map<String, Object>> conversation(Long userId, Long contactId, Integer pageNum, Integer pageSize) {
+        Page<PrivateMessage> page = new Page<>(pageNum, pageSize);
+        IPage<PrivateMessage> messagePage = this.page(page,
+                new LambdaQueryWrapper<PrivateMessage>()
+                        .eq(PrivateMessage::getDeleted, 0)
+                        .and(wrapper -> wrapper
+                                .eq(PrivateMessage::getSenderId, userId)
+                                .eq(PrivateMessage::getReceiverId, contactId)
+                                .or()
+                                .eq(PrivateMessage::getSenderId, contactId)
+                                .eq(PrivateMessage::getReceiverId, userId))
+                        .orderByAsc(PrivateMessage::getSendTime)
+        );
+
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (PrivateMessage msg : messagePage.getRecords()) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", msg.getId());
+            map.put("senderId", msg.getSenderId());
+            map.put("receiverId", msg.getReceiverId());
+            map.put("content", msg.getContent());
+            map.put("sendTime", msg.getSendTime());
+            map.put("isRead", msg.getIsRead());
+            map.put("mine", msg.getSenderId().equals(userId));
+            resultList.add(map);
+        }
+
+        Page<Map<String, Object>> resultPage = new Page<>(pageNum, pageSize);
+        resultPage.setRecords(resultList);
+        resultPage.setTotal(messagePage.getTotal());
+        resultPage.setPages(messagePage.getPages());
         return resultPage;
     }
 

@@ -29,7 +29,7 @@ export function HeroSection() {
       </div>
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-16 md:py-24">
-        <ScrollReveal className="max-w-3xl">
+        <ScrollReveal className="max-w-3xl mx-auto text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full mb-6">
             <Sparkles className="w-4 h-4 text-primary" />
@@ -46,13 +46,13 @@ export function HeroSection() {
           </h1>
 
           {/* Description */}
-          <p className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl">
+          <p className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
             MiniBlog 是一个简洁、现代的内容创作平台。在这里，你可以专注于写作，
             分享你的技术见解、生活感悟和创意想法。
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-wrap items-center gap-4 mt-8">
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
             {isAuthenticated ? (
               <TransitionLink
                 href="/write"

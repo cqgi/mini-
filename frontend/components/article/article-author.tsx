@@ -6,7 +6,7 @@ import { Eye, Clock, Bookmark, BookmarkCheck, Share2, Loader2 } from "lucide-rea
 import type { Article } from "@/lib/api";
 import { userApi } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
-import { formatDate, formatViewCount } from "@/lib/utils";
+import { formatDate, formatViewCount, getSafeImageUrl } from "@/lib/utils";
 import { useTransitionRouter } from "@/lib/use-transition-router";
 
 interface ArticleAuthorProps {
@@ -18,6 +18,7 @@ export function ArticleAuthor({ article }: ArticleAuthorProps) {
   const { user, isAuthenticated } = useAuthStore();
   const [statusMessage, setStatusMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const authorAvatarUrl = getSafeImageUrl(article.authorAvatar);
 
   const { data: favorites = [], mutate } = useSWR(
     user ? ["article-favorites", user.userId] : null,
@@ -82,9 +83,9 @@ export function ArticleAuthor({ article }: ArticleAuthorProps) {
     <div className="flex flex-col gap-4 mt-6 pt-6 border-t border-border">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          {article.authorAvatar ? (
+          {authorAvatarUrl ? (
             <img
-              src={article.authorAvatar}
+              src={authorAvatarUrl}
               alt={article.authorNickname}
               className="w-12 h-12 rounded-full object-cover"
             />

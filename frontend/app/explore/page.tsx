@@ -156,15 +156,15 @@ function ExplorePageContent() {
     <>
       <div className="bg-card border-b border-border">
         <ScrollReveal className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <div>
+          <div className="text-center">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
               发现
             </h1>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground mb-6 max-w-3xl mx-auto">
               按标题关键词、分类和标签浏览当前已经发布的文章，排序在前端按真实列表结果即时切换。
             </p>
             {tagFromUrl > 0 && (
-              <div className="mb-4 flex flex-wrap items-center gap-2">
+              <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
                 <span className="text-sm text-muted-foreground">当前标签：</span>
                 <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
                   {activeTag?.tagName || `标签 #${tagFromUrl}`}
@@ -180,7 +180,7 @@ function ExplorePageContent() {
               </div>
             )}
 
-            <form onSubmit={handleSearch} className="relative max-w-xl">
+            <form onSubmit={handleSearch} className="relative max-w-xl mx-auto">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="text"

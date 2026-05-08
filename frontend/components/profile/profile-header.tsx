@@ -5,7 +5,7 @@ import { Edit2, Loader2, Check, X, Upload } from "lucide-react";
 import type { User } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { fileApi, userApi } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getSafeImageUrl } from "@/lib/utils";
 
 interface ProfileHeaderProps {
   user: User;
@@ -25,15 +25,15 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
   const joinedDateLabel = joinedDate === "时间未知" ? joinedDate : `${joinedDate} 加入`;
   const [formData, setFormData] = useState({
     nickname: user.nickname || "",
-    avatar: user.avatar || "",
+    avatar: getSafeImageUrl(user.avatar),
     bio: user.bio || "",
   });
-  const previewAvatar = (isEditing ? formData.avatar : user.avatar) || "";
+  const previewAvatar = getSafeImageUrl(isEditing ? formData.avatar : user.avatar);
 
   useEffect(() => {
     setFormData({
       nickname: user.nickname || "",
-      avatar: user.avatar || "",
+      avatar: getSafeImageUrl(user.avatar),
       bio: user.bio || "",
     });
   }, [user]);
@@ -183,7 +183,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                       setIsEditing(false);
                       setFormData({
                         nickname: user.nickname || "",
-                        avatar: user.avatar || "",
+                        avatar: getSafeImageUrl(user.avatar),
                         bio: user.bio || "",
                       });
                     }}

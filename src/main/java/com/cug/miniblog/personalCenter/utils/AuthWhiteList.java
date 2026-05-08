@@ -5,6 +5,13 @@ public class AuthWhiteList {
     public static final String[] WHITE_LIST = {
             "/auth/login",
             "/auth/register",
-            "/auth/admin/login"
+            "/auth/admin/login",
+            "/articles",
+            "/articles/*",
+            "/categories",
+            "/tags",
+            "/tags/*",
+            "/blog-comments/blog/*/topCommentList",
+            "/blog-comments/blog/*/commentTreeList"
     };
 }

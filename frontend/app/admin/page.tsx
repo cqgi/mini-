@@ -27,7 +27,13 @@ import {
   type Category,
   type Tag as TagItem,
 } from "@/lib/api";
-import { articleStatusLabel, cn, formatDate, formatRelativeTime } from "@/lib/utils";
+import {
+  articleStatusLabel,
+  cn,
+  formatDate,
+  formatRelativeTime,
+  getSafeImageUrl,
+} from "@/lib/utils";
 import { useAuthStore } from "@/lib/store";
 import { TransitionLink } from "@/components/ui/transition-link";
 import { AnimatedList } from "@/components/ui/animated-list";
@@ -1194,6 +1200,7 @@ function UsersAdminTab() {
           {users.map((targetUser) => {
             const isBusy = processingId === targetUser.userId;
             const isAdmin = targetUser.role === 1;
+            const avatarUrl = getSafeImageUrl(targetUser.avatar);
             return (
               <article
                 key={targetUser.userId}
@@ -1202,9 +1209,9 @@ function UsersAdminTab() {
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0 space-y-3">
                     <div className="flex items-center gap-3">
-                      {targetUser.avatar ? (
+                      {avatarUrl ? (
                         <img
-                          src={targetUser.avatar}
+                          src={avatarUrl}
                           alt={targetUser.nickname || targetUser.username}
                           className="h-11 w-11 rounded-2xl object-cover"
                         />

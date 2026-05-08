@@ -7,6 +7,7 @@ import {
   articleStatusLabel,
   formatRelativeTime,
   formatViewCount,
+  getSafeImageUrl,
   cn,
 } from "@/lib/utils";
 import { TransitionLink } from "@/components/ui/transition-link";
@@ -27,6 +28,7 @@ export function ArticleCard({
     href ?? (Number(article.status) === 1 ? `/article/${article.articleId}` : undefined);
   const hasCover = Boolean(article.cover?.trim()) && !coverFailed;
   const articleTags = article.tags?.length ? article.tags.slice(0, 2) : [];
+  const authorAvatarUrl = getSafeImageUrl(article.authorAvatar);
 
   useEffect(() => {
     setCoverFailed(false);
@@ -165,9 +167,9 @@ export function ArticleCard({
         <div className="flex items-center justify-between mt-auto pt-4">
           {/* Author */}
           <div className="flex items-center gap-2">
-            {article.authorAvatar ? (
+            {authorAvatarUrl ? (
               <img
-                src={article.authorAvatar}
+                src={authorAvatarUrl}
                 alt={article.authorNickname}
                 className="w-7 h-7 rounded-full object-cover"
               />

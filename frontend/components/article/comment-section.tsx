@@ -69,13 +69,13 @@ export function CommentSection({ articleId }: CommentSectionProps) {
     }
   };
 
-  const handleSubmitReply = async (parentId: number) => {
+  const handleSubmitReply = async (parentId: number, commentUserId: number) => {
     if (!replyContent.trim() || !user) return;
 
     setIsSubmitting(true);
     setActionError("");
     try {
-      await commentApi.reply(parentId, user.userId, replyContent);
+      await commentApi.reply(parentId, commentUserId, user.userId, replyContent);
       setReplyTo(null);
       setReplyContent("");
       mutate();
@@ -185,7 +185,7 @@ export function CommentSection({ articleId }: CommentSectionProps) {
               replyContent={replyContent}
               isAuthenticated={isAuthenticated}
               isSubmitting={isSubmitting}
-              onReply={() => setReplyTo(comment.commentId)}
+              onReply={setReplyTo}
               onCancelReply={() => {
                 setReplyTo(null);
                 setReplyContent("");
@@ -294,10 +294,10 @@ interface CommentThreadProps {
   replyContent: string;
   isAuthenticated: boolean;
   isSubmitting: boolean;
-  onReply: () => void;
+  onReply: (commentId: number) => void;
   onCancelReply: () => void;
   onReplyContentChange: (value: string) => void;
-  onSubmitReply: (commentId: number) => void;
+  onSubmitReply: (commentId: number, commentUserId: number) => void;
   onDelete: (commentId: number) => void;
 }
 
@@ -322,7 +322,7 @@ function CommentThread({
       <CommentItem
         comment={comment}
         currentUserId={currentUserId}
-        onReply={onReply}
+        onReply={() => onReply(comment.commentId)}
         onDelete={() => onDelete(comment.commentId)}
       />
 
@@ -352,7 +352,7 @@ function CommentThread({
                     取消
                   </button>
                   <button
-                    onClick={() => onSubmitReply(comment.commentId)}
+                    onClick={() => onSubmitReply(comment.commentId, comment.userId)}
                     disabled={!replyContent.trim() || isSubmitting}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
@@ -382,7 +382,7 @@ function CommentThread({
               replyContent={replyContent}
               isAuthenticated={isAuthenticated}
               isSubmitting={isSubmitting}
-              onReply={() => onReply()}
+              onReply={onReply}
               onCancelReply={onCancelReply}
               onReplyContentChange={onReplyContentChange}
               onSubmitReply={onSubmitReply}

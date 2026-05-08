@@ -10,7 +10,9 @@ public class WebCorsConfig implements WebMvcConfigurer {
     private static final String[] ALLOWED_ORIGIN_PATTERNS = {
             "http://localhost:*",
             "http://127.0.0.1:*",
-            "http://172.27.89.254:*"
+            "http://172.*.*.*:*",
+            "http://192.168.*.*:*",
+            "http://10.*.*.*:*"
     };
 
     @Override

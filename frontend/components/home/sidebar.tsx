@@ -3,7 +3,7 @@
 import useSWR from "swr";
 import { TrendingUp, Tag, Folder, Users, Loader2 } from "lucide-react";
 import { articleApi, tagApi } from "@/lib/api";
-import { formatViewCount } from "@/lib/utils";
+import { formatViewCount, getSafeImageUrl } from "@/lib/utils";
 import { TransitionLink } from "@/components/ui/transition-link";
 
 export function Sidebar() {
@@ -194,31 +194,34 @@ export function Sidebar() {
         </div>
         <ul className="space-y-3">
           {topAuthors.length > 0 ? (
-            topAuthors.map((author) => (
-              <li key={author.id} className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden">
-                  {author.avatar ? (
-                    <img
-                      src={author.avatar}
-                      alt={author.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-sm font-medium text-muted-foreground">
-                      {author.name.charAt(0)}
-                    </span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {author.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {author.articles} 篇已发布文章
-                  </p>
-                </div>
-              </li>
-            ))
+            topAuthors.map((author) => {
+              const avatarUrl = getSafeImageUrl(author.avatar);
+              return (
+                <li key={author.id} className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={author.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {author.name.charAt(0)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {author.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {author.articles} 篇已发布文章
+                    </p>
+                  </div>
+                </li>
+              );
+            })
           ) : (
             <li className="text-sm text-muted-foreground">暂无作者数据</li>
           )}

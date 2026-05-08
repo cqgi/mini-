@@ -57,8 +57,7 @@ public class AuthServiceImpl  implements AuthService {
         // 待生成随机名称
         String nickname="用户_"+String.format("%07d",new Random().nextInt(90000000)+10000000);
         user.setNickname(nickname);
-        // 暂时没有默认头像地址
-        user.setAvatar("默认头像地址.jpg");
+        user.setAvatar("");
         user.setRole(0);
         // 插入数据库
         userMapper.insert(user);

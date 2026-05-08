@@ -1,10 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Search, PenSquare, Menu, X } from "lucide-react";
+import { Search, PenSquare, Menu, X, Mail } from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "@/lib/store";
-import { cn } from "@/lib/utils";
+import { cn, getSafeImageUrl } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MotionToggle } from "@/components/motion-toggle";
 import { TransitionLink } from "@/components/ui/transition-link";
@@ -26,6 +26,7 @@ export function Header() {
   const displayInitial = displayName
     ? displayName.charAt(0).toUpperCase()
     : "U";
+  const avatarUrl = getSafeImageUrl(user?.avatar);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +40,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
+        <div className="relative flex items-center justify-between h-16">
           {/* Logo */}
           <TransitionLink href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -51,7 +52,7 @@ export function Header() {
           </TransitionLink>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
             {navLinks.map((link) => (
               <TransitionLink
                 key={link.href}
@@ -110,6 +111,19 @@ export function Header() {
             {isAuthenticated && user ? (
               <>
                 <TransitionLink
+                  href="/messages"
+                  transition="slide"
+                  aria-label="私信"
+                  className={cn(
+                    "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground",
+                    pathname === "/messages"
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  <Mail className="w-4 h-4" />
+                </TransitionLink>
+                <TransitionLink
                   href="/write"
                   transition="slideUp"
                   className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
@@ -119,9 +133,9 @@ export function Header() {
                 </TransitionLink>
                 <div className="relative group">
                   <button className="flex items-center gap-2">
-                    {user.avatar ? (
+                    {avatarUrl ? (
                       <img
-                        src={user.avatar}
+                        src={avatarUrl}
                         alt={displayName}
                         className="w-8 h-8 rounded-full object-cover"
                       />
@@ -245,6 +259,15 @@ export function Header() {
                   >
                     <PenSquare className="w-4 h-4" />
                     写文章
+                  </TransitionLink>
+                  <TransitionLink
+                    href="/messages"
+                    transition="slide"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-muted-foreground hover:text-foreground text-sm font-medium"
+                  >
+                    <Mail className="w-4 h-4" />
+                    私信
                   </TransitionLink>
                   <TransitionLink
                     href="/profile"

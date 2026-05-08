@@ -57,6 +57,25 @@ export function formatRelativeTime(date: string | Date | null | undefined) {
   });
 }
 
+export function getSafeImageUrl(url: string | null | undefined) {
+  const value = url?.trim();
+  if (!value || value === "默认头像地址.jpg") {
+    return "";
+  }
+
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("/") ||
+    value.startsWith("blob:") ||
+    value.startsWith("data:image/")
+  ) {
+    return value;
+  }
+
+  return "";
+}
+
 export function formatViewCount(count: number) {
   if (count >= 10000) {
     return `${(count / 10000).toFixed(1)}万`;
