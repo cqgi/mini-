@@ -2,6 +2,7 @@ package com.cug.miniblog.contextManagement.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.cug.miniblog.common.entity.Comment;
+import com.cug.miniblog.contextManagement.dto.CommentQueryDTO;
 import com.cug.miniblog.contextManagement.dto.Result;
 import java.util.HashMap;
 import java.util.List;
@@ -38,13 +39,28 @@ public interface ICommentsService extends IService<Comment> {
      * @param commentId,评论id
      * @return
      */
-   // Result likeComment(Long commentId);
+    Result likeComment(Long commentId);
     /**
      * 删除评论
      * @param commentId,评论id
      * @return
      */
     Result deleteComment(Long commentId,Long userId);
+
+    /**
+     * 后台评论列表
+     * @param commentQueryDTO 查询参数
+     * @return 评论列表
+     */
+    Result listAdminComments(CommentQueryDTO commentQueryDTO);
+
+    /**
+     * 后台删除评论
+     * @param commentId 评论id
+     * @return 删除结果
+     */
+    Result deleteAdminComment(Long commentId);
+
     /**
      * 回复评论
      * @param commentId,评论id

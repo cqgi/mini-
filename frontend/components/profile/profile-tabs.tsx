@@ -94,7 +94,7 @@ function ArticlesTab({ userId }: { userId: number }) {
     return Promise.all(
       ids.map(async (articleId) => {
         try {
-          return await articleApi.getAdminDetail(articleId);
+          return await articleApi.getManageDetail(articleId);
         } catch {
           return makeFallbackArticle(articleId, "我的文章");
         }
@@ -183,7 +183,7 @@ function FavoritesTab({ userId }: { userId: number }) {
     return Promise.all(
       ids.map(async (articleId) => {
         try {
-          return await articleApi.getAdminDetail(articleId);
+          return await articleApi.getDetail(articleId);
         } catch {
           return makeFallbackArticle(articleId, "收藏文章");
         }

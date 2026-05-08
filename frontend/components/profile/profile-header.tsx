@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Edit2, Loader2, Check, X } from "lucide-react";
+import { type ChangeEvent, useEffect, useState } from "react";
+import { Edit2, Loader2, Check, X, Upload } from "lucide-react";
 import type { User } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
-import { userApi } from "@/lib/api";
+import { fileApi, userApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 interface ProfileHeaderProps {
@@ -15,12 +15,20 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
   const { updateUser } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [status, setStatus] = useState("");
+  const displayName = (user.nickname || user.username || "User").trim();
+  const displayInitial = displayName
+    ? displayName.charAt(0).toUpperCase()
+    : "U";
+  const joinedDate = formatDate(user.createTime);
+  const joinedDateLabel = joinedDate === "时间未知" ? joinedDate : `${joinedDate} 加入`;
   const [formData, setFormData] = useState({
     nickname: user.nickname || "",
     avatar: user.avatar || "",
     bio: user.bio || "",
   });
+  const previewAvatar = (isEditing ? formData.avatar : user.avatar) || "";
 
   useEffect(() => {
     setFormData({
@@ -29,6 +37,29 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       bio: user.bio || "",
     });
   }, [user]);
+
+  const handleAvatarFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    setStatus("");
+    try {
+      const uploadedFile = await fileApi.uploadImage("avatar", file);
+      setFormData((current) => ({
+        ...current,
+        avatar: uploadedFile.url,
+      }));
+      setStatus("头像已上传，请保存资料");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "头像上传失败");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -55,19 +86,19 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12 sm:-mt-16 pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4 pb-6">
           {/* Avatar */}
-          <div className="relative">
+          <div className="relative -mt-12 sm:-mt-16">
             <div className="w-24 h-24 sm:w-32 sm:h-32 bg-muted rounded-full border-4 border-card flex items-center justify-center overflow-hidden">
-              {user.avatar ? (
+              {previewAvatar ? (
                 <img
-                  src={user.avatar}
-                  alt={user.nickname || user.username}
+                  src={previewAvatar}
+                  alt={displayName}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <span className="text-3xl sm:text-4xl font-bold text-muted-foreground">
-                  {(user.nickname || user.username).charAt(0).toUpperCase()}
+                  {displayInitial}
                 </span>
               )}
             </div>
@@ -106,6 +137,26 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                   placeholder="头像地址"
                   className="w-full max-w-md h-10 px-3 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+                    {isUploadingAvatar ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4" />
+                    )}
+                    {isUploadingAvatar ? "正在上传头像..." : "上传本地头像"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      onChange={handleAvatarFileChange}
+                      disabled={isUploadingAvatar}
+                    />
+                  </label>
+                  <span className="text-xs text-muted-foreground">
+                    支持 JPG、PNG、WEBP、GIF，上传后会自动回填 OSS 地址
+                  </span>
+                </div>
                 <textarea
                   value={formData.bio}
                   onChange={(e) =>
@@ -160,9 +211,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                   <p>用户 ID：{user.userId}</p>
                   <p>{user.email}</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {formatDate(user.createTime)} 加入
-                </p>
+                <p className="text-xs text-muted-foreground mt-2">{joinedDateLabel}</p>
               </>
             )}
           </div>

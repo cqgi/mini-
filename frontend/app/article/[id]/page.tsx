@@ -9,6 +9,7 @@ import { ArticleTOC } from "@/components/article/article-toc";
 import { articleApi } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { TransitionLink } from "@/components/ui/transition-link";
 
 export default function ArticlePage({
   params,
@@ -53,14 +54,25 @@ export default function ArticlePage({
               <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-lg">
                 {article.categoryName}
               </span>
-              {article.tagNames?.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded"
-                >
-                  {tag}
-                </span>
-              ))}
+              {article.tags?.length
+                ? article.tags.map((tag) => (
+                    <TransitionLink
+                      key={tag.tagId}
+                      href={`/explore?tagId=${tag.tagId}`}
+                      transition="scaleFade"
+                      className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                      {tag.tagName}
+                    </TransitionLink>
+                  ))
+                : article.tagNames?.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded"
+                    >
+                      {tag}
+                    </span>
+                  ))}
             </div>
 
             <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight text-balance">

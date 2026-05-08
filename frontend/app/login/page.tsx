@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, ArrowLeft, UserRound } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
@@ -11,25 +11,38 @@ import { useTransitionRouter } from "@/lib/use-transition-router";
 function LoginPageContent() {
   const searchParams = useSearchParams();
   const router = useTransitionRouter();
-  const { login, knownAccounts, findKnownAccount } = useAuthStore();
+  const { login, knownAccounts } = useAuthStore();
   const [formData, setFormData] = useState({
     username: searchParams.get("username") || "",
     password: "",
-    userId: searchParams.get("userId") || "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const visibleKnownAccounts = useMemo(() => {
+    const uniqueAccounts = new Map<string, (typeof knownAccounts)[number]>();
 
-  const rememberedAccount = formData.username
-    ? findKnownAccount(formData.username)
-    : undefined;
+    knownAccounts.forEach((account) => {
+      const rawUsername =
+        typeof account?.username === "string" ? account.username : "";
+      const normalizedUsername = rawUsername.trim();
+      if (!normalizedUsername || uniqueAccounts.has(normalizedUsername)) {
+        return;
+      }
 
-  const applyKnownAccount = (username: string, userId: number) => {
+      uniqueAccounts.set(normalizedUsername, {
+        ...account,
+        username: normalizedUsername,
+      });
+    });
+
+    return Array.from(uniqueAccounts.values()).slice(0, 3);
+  }, [knownAccounts]);
+
+  const applyKnownAccount = (username: string) => {
     setFormData((current) => ({
       ...current,
       username,
-      userId: String(userId),
     }));
   };
 
@@ -44,27 +57,13 @@ function LoginPageContent() {
 
     setIsLoading(true);
     try {
-      const loginMessage = await userApi.login(
+      const token = await userApi.login(
         formData.username.trim(),
         formData.password
       );
 
-      const resolvedUserId =
-        Number(formData.userId) || rememberedAccount?.userId || 0;
-
-      // if (!resolvedUserId) {
-      //   setError("当前后端登录接口不会返回 userId，请填写联调用户 ID");
-      //   return;
-      // }
-
       const profile = await userApi.getProfile();
-
-      if (profile.username !== formData.username.trim()) {
-        setError("填写的 userId 和用户名不匹配，请检查后重试");
-        return;
-      }
-
-      login(profile, loginMessage);
+      login(profile, token);
       router.push("/profile", { transition: "fade" });
     } catch (requestError) {
       setError(
@@ -101,7 +100,7 @@ function LoginPageContent() {
             </TransitionLink>
             <h1 className="text-2xl font-bold text-foreground">欢迎回来</h1>
             <p className="text-muted-foreground mt-2">
-              登录后会再用你填写的 userId 读取真实资料，确保前端用户态和后端账号一致
+              使用用户名和密码登录，系统会自动同步你的当前账号资料
             </p>
           </div>
 
@@ -130,29 +129,6 @@ function LoginPageContent() {
                 className="w-full h-11 px-4 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow"
                 placeholder="请输入用户名"
               />
-            </div>
-
-            <div>
-              <label
-                htmlFor="loginUserId"
-                className="block text-sm font-medium text-foreground mb-2"
-              >
-                联调用户 ID
-              </label>
-              <input
-                id="loginUserId"
-                type="text"
-                inputMode="numeric"
-                value={formData.userId}
-                onChange={(e) =>
-                  setFormData({ ...formData, userId: e.target.value })
-                }
-                className="w-full h-11 px-4 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow"
-                placeholder="例如 1"
-              />
-              <p className="mt-2 text-xs text-muted-foreground">
-                后端登录接口只返回一段字符串，不返回 token 和 userId，所以这里需要你显式绑定账号主键。
-              </p>
             </div>
 
             <div>
@@ -187,17 +163,15 @@ function LoginPageContent() {
               </div>
             </div>
 
-            {knownAccounts.length > 0 && (
+            {visibleKnownAccounts.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-foreground mb-2">本地记住的账号</p>
                 <div className="space-y-2">
-                  {knownAccounts.slice(0, 3).map((account) => (
+                  {visibleKnownAccounts.map((account) => (
                     <button
-                      key={`${account.username}-${account.userId}`}
+                      key={account.username}
                       type="button"
-                      onClick={() =>
-                        applyKnownAccount(account.username, account.userId)
-                      }
+                      onClick={() => applyKnownAccount(account.username)}
                       className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-card border border-border rounded-lg text-left hover:border-primary/40 transition-colors"
                     >
                       <span className="flex items-center gap-3 min-w-0">
@@ -214,7 +188,7 @@ function LoginPageContent() {
                         </span>
                       </span>
                       <span className="text-xs text-muted-foreground shrink-0">
-                        ID {account.userId}
+                        最近使用
                       </span>
                     </button>
                   ))}
@@ -264,8 +238,8 @@ function LoginPageContent() {
             记录思考，分享知识
           </h2>
           <p className="text-muted-foreground leading-relaxed">
-            这套前端现在会在登录成功后继续读取真实用户资料，而不是再写一个 mock 用户。
-            如果你刚注册成功，也可以直接使用系统记住的 userId 快速回填。
+            登录成功后，系统会自动读取当前账号的真实资料和个人中心内容，
+            不需要再手动填写额外信息。
           </p>
         </div>
       </div>

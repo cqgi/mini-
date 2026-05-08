@@ -1,13 +1,10 @@
 package com.cug.miniblog.personalCenter.controller;
 
 import com.cug.miniblog.common.entity.User;
+import com.cug.miniblog.personalCenter.dto.UpdateProfileDTO;
 import com.cug.miniblog.personalCenter.service.UsersService;
 import com.cug.miniblog.personalCenter.utils.UserContext;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,11 +20,17 @@ public class UsersController {
         Long userId = UserContext.getUserId();
         return usersService.getProfile(userId);
     }
-    // http://localhost:8080/users/profile?userId=1&nickname=newNickname&avatar=newAvatar&bio=newBio
+    // PUT /users/profile
+    // Content-Type: application/json
     @PutMapping("/profile")
-    public boolean updateProfile(String nickname, String avatar, String bio) {
+    public boolean updateProfile(@RequestBody UpdateProfileDTO updateProfileDTO) {
         Long userId = UserContext.getUserId();
-        return usersService.updateProfile(userId, nickname, avatar, bio);
+        return usersService.updateProfile(
+                userId,
+                updateProfileDTO.getNickname(),
+                updateProfileDTO.getAvatar(),
+                updateProfileDTO.getBio()
+        );
     }
     // http://localhost:8080/users/articles?userId=1&status=pending
     @GetMapping("/articles")

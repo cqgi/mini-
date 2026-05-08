@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { type ChangeEvent, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import {
@@ -25,7 +25,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAuthStore } from "@/lib/store";
-import { articleApi, categoryApi } from "@/lib/api";
+import { articleApi, categoryApi, fileApi } from "@/lib/api";
 import { cn, parseTagIds } from "@/lib/utils";
 import { TransitionLink } from "@/components/ui/transition-link";
 import { useTransitionRouter } from "@/lib/use-transition-router";
@@ -59,6 +59,7 @@ function WritePageContent() {
   const [showSettings, setShowSettings] = useState(false);
   const [notice, setNotice] = useState("");
   const [noticeTone, setNoticeTone] = useState<"success" | "error">("success");
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [article, setArticle] = useState<ArticleFormState>(initialArticleState);
 
   const rawArticleId = searchParams.get("articleId");
@@ -73,7 +74,7 @@ function WritePageContent() {
     isLoading: isLoadingArticle,
   } = useSWR(
     editingArticleId ? ["write-article", editingArticleId] : null,
-    () => articleApi.getAdminDetail(editingArticleId!),
+    () => articleApi.getManageDetail(editingArticleId!),
     {
       revalidateOnFocus: false,
     }
@@ -235,6 +236,31 @@ function WritePageContent() {
 
   const handlePublish = async () => {
     await persistArticle(1);
+  };
+
+  const handleCoverFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+
+    setIsUploadingCover(true);
+    setNotice("");
+    try {
+      const uploadedFile = await fileApi.uploadImage("cover", file);
+      setArticle((current) => ({
+        ...current,
+        cover: uploadedFile.url,
+      }));
+      setNotice("封面图片已上传");
+      setNoticeTone("success");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "封面图片上传失败");
+      setNoticeTone("error");
+    } finally {
+      setIsUploadingCover(false);
+    }
   };
 
   const toolbarItems = [
@@ -468,7 +494,36 @@ function WritePageContent() {
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  封面图片 URL
+                  封面图片
+                </label>
+                <div className="space-y-3">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+                    {isUploadingCover ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ImageIcon className="h-4 w-4" />
+                    )}
+                    {isUploadingCover ? "正在上传封面..." : "上传本地封面"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      onChange={handleCoverFileChange}
+                      disabled={isUploadingCover}
+                    />
+                  </label>
+                  {article.cover && (
+                    <div className="overflow-hidden rounded-xl border border-border bg-muted/30">
+                      <img
+                        src={article.cover}
+                        alt="封面预览"
+                        className="h-40 w-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+                <label className="mt-3 block text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  或手动填写封面 URL
                 </label>
                 <input
                   type="text"

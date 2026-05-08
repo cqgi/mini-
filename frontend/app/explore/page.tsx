@@ -4,9 +4,9 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { ArticleCard } from "@/components/article-card";
-import { Search, TrendingUp, Clock, Flame, Loader2 } from "lucide-react";
+import { Search, TrendingUp, Clock, Flame, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { articleApi, type Article } from "@/lib/api";
+import { articleApi, tagApi, type Article } from "@/lib/api";
 import { useTransitionRouter } from "@/lib/use-transition-router";
 import { AnimatedList } from "@/components/ui/animated-list";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
@@ -45,6 +45,7 @@ function ExplorePageContent() {
   const searchParams = useSearchParams();
   const keywordFromUrl = searchParams.get("keyword") ?? "";
   const categoryFromUrl = Number(searchParams.get("categoryId") ?? 0) || 0;
+  const tagFromUrl = Number(searchParams.get("tagId") ?? 0) || 0;
 
   const [searchQuery, setSearchQuery] = useState(keywordFromUrl);
   const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
@@ -57,6 +58,14 @@ function ExplorePageContent() {
   useEffect(() => {
     setSelectedCategory(categoryFromUrl);
   }, [categoryFromUrl]);
+
+  const { data: activeTag } = useSWR(
+    tagFromUrl > 0 ? ["explore-tag", tagFromUrl] : null,
+    () => tagApi.getDetail(tagFromUrl),
+    {
+      revalidateOnFocus: false,
+    }
+  );
 
   const { data: metaData } = useSWR(
     ["explore-meta"],
@@ -89,13 +98,14 @@ function ExplorePageContent() {
     error,
     isLoading,
   } = useSWR(
-    ["explore-articles", keywordFromUrl, categoryFromUrl],
+    ["explore-articles", keywordFromUrl, categoryFromUrl, tagFromUrl],
     () =>
       articleApi.getList({
         current: 1,
         size: 24,
         keyword: keywordFromUrl || undefined,
         categoryId: categoryFromUrl > 0 ? categoryFromUrl : undefined,
+        tagId: tagFromUrl > 0 ? tagFromUrl : undefined,
       }),
     {
       revalidateOnFocus: false,
@@ -106,8 +116,12 @@ function ExplorePageContent() {
     () => sortArticles(data?.items ?? [], selectedSort),
     [data?.items, selectedSort]
   );
+  const suggestedKeyword =
+    data?.suggestion?.trim() && data.suggestion.trim() !== keywordFromUrl.trim()
+      ? data.suggestion.trim()
+      : "";
 
-  const applyFilters = (nextKeyword: string, nextCategory: number) => {
+  const applyFilters = (nextKeyword: string, nextCategory: number, nextTagId: number) => {
     const params = new URLSearchParams();
 
     if (nextKeyword.trim()) {
@@ -116,6 +130,9 @@ function ExplorePageContent() {
     if (nextCategory > 0) {
       params.set("categoryId", String(nextCategory));
     }
+    if (nextTagId > 0) {
+      params.set("tagId", String(nextTagId));
+    }
 
     const query = params.toString();
     router.push(query ? `/explore?${query}` : "/explore");
@@ -123,12 +140,16 @@ function ExplorePageContent() {
 
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
-    applyFilters(searchQuery, selectedCategory);
+    applyFilters(searchQuery, selectedCategory, tagFromUrl);
   };
 
   const handleCategoryChange = (categoryId: number) => {
     setSelectedCategory(categoryId);
-    applyFilters(searchQuery, categoryId);
+    applyFilters(searchQuery, categoryId, tagFromUrl);
+  };
+
+  const clearTagFilter = () => {
+    applyFilters(searchQuery, selectedCategory, 0);
   };
 
   return (
@@ -140,8 +161,24 @@ function ExplorePageContent() {
               发现
             </h1>
             <p className="text-muted-foreground mb-6">
-              按标题关键词和分类浏览当前已经发布的文章，排序在前端按真实列表结果即时切换。
+              按标题关键词、分类和标签浏览当前已经发布的文章，排序在前端按真实列表结果即时切换。
             </p>
+            {tagFromUrl > 0 && (
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground">当前标签：</span>
+                <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                  {activeTag?.tagName || `标签 #${tagFromUrl}`}
+                  <button
+                    type="button"
+                    onClick={clearTagFilter}
+                    className="rounded-full p-0.5 text-primary/80 hover:bg-primary/15 hover:text-primary transition-colors"
+                    aria-label="清除标签筛选"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </span>
+              </div>
+            )}
 
             <form onSubmit={handleSearch} className="relative max-w-xl">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -208,16 +245,35 @@ function ExplorePageContent() {
         ) : filteredArticles.length > 0 ? (
           <AnimatedList
             className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-            animationKey={`${keywordFromUrl}-${categoryFromUrl}-${selectedSort}`}
+            animationKey={`${keywordFromUrl}-${categoryFromUrl}-${tagFromUrl}-${selectedSort}`}
           >
             {filteredArticles.map((article) => (
               <ArticleCard key={article.articleId} article={article} />
             ))}
           </AnimatedList>
         ) : (
-          <div className="text-center py-20">
-            <Search className="w-12 h-12 text-muted mx-auto mb-4" />
-            <p className="text-muted-foreground">没有找到匹配的文章</p>
+          <div className="py-20">
+            {suggestedKeyword && (
+              <div className="mx-auto mb-6 max-w-2xl rounded-2xl border border-primary/15 bg-primary/5 px-5 py-4 text-sm shadow-sm">
+                <p className="text-center text-foreground">
+                  <span className="text-muted-foreground">没有找到和 </span>
+                  <span className="font-medium">“{keywordFromUrl.trim()}”</span>
+                  <span className="text-muted-foreground"> 相关的文章，你要搜索的是不是 </span>
+                  <button
+                    type="button"
+                    onClick={() => applyFilters(suggestedKeyword, selectedCategory, tagFromUrl)}
+                    className="font-semibold text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:text-primary/80"
+                  >
+                    “{suggestedKeyword}”
+                  </button>
+                  <span className="text-muted-foreground">？</span>
+                </p>
+              </div>
+            )}
+            <div className="text-center">
+              <Search className="w-12 h-12 text-muted mx-auto mb-4" />
+              <p className="text-muted-foreground">没有找到匹配的文章</p>
+            </div>
           </div>
         )}
       </div>

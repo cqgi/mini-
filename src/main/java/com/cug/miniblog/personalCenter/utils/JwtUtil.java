@@ -21,8 +21,18 @@ public class JwtUtil {
 
     // 生成 Token
     public static String generateToken(Long userId) {
+        return generateToken(userId, null);
+    }
+
+    // 生成带角色信息的 Token
+    public static String generateToken(Long userId, Integer role) {
+        Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
+        if (role != null) {
+            claims.put("role", role);
+        }
+
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))
+                .setClaims(claims)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(SECRET_KEY)
@@ -31,24 +41,36 @@ public class JwtUtil {
 
     // 最新写法：解析 token（无弃用警告）
     public Long extractUserId(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        Claims claims = parseClaims(token);
         return Long.parseLong(claims.getSubject());
+    }
+
+    public Integer extractUserRole(String token) {
+        Object role = parseClaims(token).get("role");
+        if (role instanceof Integer) {
+            return (Integer) role;
+        }
+        if (role instanceof Number) {
+            return ((Number) role).intValue();
+        }
+        return null;
     }
 
     // 最新写法：校验 token（无弃用警告）
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()  // 最新！
-                    .setSigningKey(SECRET_KEY)
-                    .build()
-                    .parseClaimsJws(token);
+            parseClaims(token);
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

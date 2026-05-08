@@ -91,7 +91,7 @@ public class AuthServiceImpl  implements AuthService {
             throw new IllegalArgumentException("密码错误");
         }
         // 生成JWT令牌
-        String token = JwtUtil.generateToken(user.getUserId());
+        String token = JwtUtil.generateToken(user.getUserId(), user.getRole());
         // 登录成功，返回令牌
         return  token;
     }
@@ -120,7 +120,7 @@ public class AuthServiceImpl  implements AuthService {
             throw new IllegalArgumentException("密码错误");
         }
         // 生成JWT令牌
-        String token = JwtUtil.generateToken(user.getUserId());
+        String token = JwtUtil.generateToken(user.getUserId(), user.getRole());
         // 登录成功，返回令牌
         return  token;
     }

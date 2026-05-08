@@ -18,6 +18,7 @@ import com.cug.miniblog.contextManagement.mapper.ContextArticleMapper;
 import com.cug.miniblog.contextManagement.mapper.ContextUserMapper;
 import com.cug.miniblog.contextManagement.mapper.TagMapper;
 import com.cug.miniblog.contextManagement.service.IArticleService;
+import com.cug.miniblog.contextManagement.util.SearchSuggestionUtils;
 import com.cug.miniblog.contextManagement.vo.ArticleDetailVO;
 import com.cug.miniblog.contextManagement.vo.ArticleListVO;
 import com.cug.miniblog.contextManagement.vo.ArticleTagVO;
@@ -61,10 +62,15 @@ public class ArticleServiceImpl implements IArticleService {
     public Result listPublishedArticles(ArticleQueryDTO articleQueryDTO) {
         ArticleQueryDTO queryDTO = normalizeQuery(articleQueryDTO);
         String keyword = normalizeKeyword(queryDTO.getKeyword());
+        List<Long> articleIds = queryArticleIdsByTagId(queryDTO.getTagId());
+        if (queryDTO.getTagId() != null && CollectionUtils.isEmpty(articleIds)) {
+            return Result.ok(Collections.emptyList(), 0L);
+        }
         Page<Article> page = new Page<>(queryDTO.getCurrent(), queryDTO.getSize());
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Article::getStatus, 1)
                 .eq(queryDTO.getCategoryId() != null, Article::getCategoryId, queryDTO.getCategoryId())
+                .in(queryDTO.getTagId() != null, Article::getArticleId, articleIds)
                 .eq(queryDTO.getIsTop() != null, Article::getIsTop, queryDTO.getIsTop())
                 .like(StringUtils.hasText(keyword), Article::getTitle, keyword)
                 .orderByDesc(Article::getIsTop)
@@ -72,7 +78,8 @@ public class ArticleServiceImpl implements IArticleService {
 
         Page<Article> articlePage = articleMapper.selectPage(page, wrapper);
         List<ArticleListVO> articleList = buildArticleList(articlePage.getRecords());
-        return Result.ok(articleList, articlePage.getTotal());
+        String suggestion = articleList.isEmpty() ? buildSearchSuggestion(queryDTO, articleIds, keyword) : null;
+        return Result.ok(articleList, articlePage.getTotal(), suggestion);
     }
 
     @Override
@@ -96,12 +103,37 @@ public class ArticleServiceImpl implements IArticleService {
     }
 
     @Override
+    public Result getManageableArticleDetail(Long articleId, Long currentUserId, Integer currentUserRole) {
+        if (articleId == null) {
+            return Result.fail("文章ID不能为空");
+        }
+        if (currentUserId == null) {
+            return Result.fail(401, "请先登录");
+        }
+
+        Article article = articleMapper.selectById(articleId);
+        if (article == null) {
+            return Result.fail("文章不存在");
+        }
+        boolean isAdmin = Integer.valueOf(1).equals(currentUserRole);
+        if (!isAdmin && !currentUserId.equals(article.getUserId())) {
+            return Result.fail(403, "无权查看该文章");
+        }
+        return Result.ok(buildArticleDetail(article));
+    }
+
+    @Override
     public Result listAdminArticles(ArticleQueryDTO articleQueryDTO) {
         ArticleQueryDTO queryDTO = normalizeQuery(articleQueryDTO);
         String keyword = normalizeKeyword(queryDTO.getKeyword());
+        List<Long> articleIds = queryArticleIdsByTagId(queryDTO.getTagId());
+        if (queryDTO.getTagId() != null && CollectionUtils.isEmpty(articleIds)) {
+            return Result.ok(Collections.emptyList(), 0L);
+        }
         Page<Article> page = new Page<>(queryDTO.getCurrent(), queryDTO.getSize());
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(queryDTO.getCategoryId() != null, Article::getCategoryId, queryDTO.getCategoryId())
+                .in(queryDTO.getTagId() != null, Article::getArticleId, articleIds)
                 .eq(queryDTO.getStatus() != null, Article::getStatus, queryDTO.getStatus())
                 .eq(queryDTO.getIsTop() != null, Article::getIsTop, queryDTO.getIsTop())
                 .like(StringUtils.hasText(keyword), Article::getTitle, keyword)
@@ -322,11 +354,54 @@ public class ArticleServiceImpl implements IArticleService {
         if (queryDTO.getSize() == null || queryDTO.getSize() < 1) {
             queryDTO.setSize(10L);
         }
+        if (queryDTO.getTagId() != null && queryDTO.getTagId() < 1) {
+            queryDTO.setTagId(null);
+        }
         return queryDTO;
     }
 
     private String normalizeKeyword(String keyword) {
         return StringUtils.hasText(keyword) ? keyword.trim() : null;
+    }
+
+    private String buildSearchSuggestion(ArticleQueryDTO queryDTO, List<Long> articleIds, String keyword) {
+        if (!StringUtils.hasText(keyword)) {
+            return null;
+        }
+
+        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Article::getStatus, 1)
+                .eq(queryDTO.getCategoryId() != null, Article::getCategoryId, queryDTO.getCategoryId())
+                .in(queryDTO.getTagId() != null, Article::getArticleId, articleIds)
+                .select(Article::getArticleId, Article::getTitle, Article::getCategoryId);
+
+        List<Article> scopedArticles = articleMapper.selectList(wrapper);
+        if (CollectionUtils.isEmpty(scopedArticles)) {
+            return null;
+        }
+
+        Map<Long, Category> categoryMap = queryCategoryMap(scopedArticles);
+        Map<Long, List<ArticleTagVO>> articleTagMap = queryArticleTagMap(scopedArticles);
+        Set<String> suggestionSources = new LinkedHashSet<>();
+
+        for (Article article : scopedArticles) {
+            suggestionSources.add(article.getTitle());
+
+            Category category = categoryMap.get(article.getCategoryId());
+            if (category != null) {
+                suggestionSources.add(category.getCategoryName());
+            }
+
+            List<ArticleTagVO> tagVOList = articleTagMap.get(article.getArticleId());
+            if (CollectionUtils.isEmpty(tagVOList)) {
+                continue;
+            }
+            for (ArticleTagVO tagVO : tagVOList) {
+                suggestionSources.add(tagVO.getTagName());
+            }
+        }
+
+        return SearchSuggestionUtils.suggest(keyword, suggestionSources);
     }
 
     private List<ArticleListVO> buildArticleList(List<Article> articles) {
@@ -343,6 +418,7 @@ public class ArticleServiceImpl implements IArticleService {
             ArticleListVO articleListVO = new ArticleListVO();
             fillBaseArticleInfo(articleListVO, article, userMap, categoryMap);
             List<ArticleTagVO> tagVOList = articleTagMap.getOrDefault(article.getArticleId(), Collections.emptyList());
+            articleListVO.setTags(tagVOList);
             articleListVO.setTagNames(tagVOList.stream().map(ArticleTagVO::getTagName).toList());
             result.add(articleListVO);
         }
@@ -421,6 +497,13 @@ public class ArticleServiceImpl implements IArticleService {
                     .add(new ArticleTagVO(queryRow.getTagId(), queryRow.getTagName()));
         }
         return articleTagMap;
+    }
+
+    private List<Long> queryArticleIdsByTagId(Long tagId) {
+        if (tagId == null) {
+            return Collections.emptyList();
+        }
+        return articleTagMapper.selectArticleIdsByTagId(tagId);
     }
 
     /**

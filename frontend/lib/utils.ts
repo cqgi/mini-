@@ -6,12 +6,52 @@ export function cn(...classes: (string | boolean | undefined | null)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-export function formatDate(date: string | Date, pattern = "yyyy年MM月dd日") {
-  return format(new Date(date), pattern, { locale: zhCN });
+function parseDateInput(date: string | Date | null | undefined) {
+  if (!date) {
+    return null;
+  }
+
+  if (date instanceof Date) {
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const raw = date.trim();
+  if (!raw || raw === "null" || raw === "undefined") {
+    return null;
+  }
+
+  if (/^\d+$/.test(raw)) {
+    const timestamp = Number(raw);
+    if (!Number.isFinite(timestamp)) {
+      return null;
+    }
+
+    const normalizedTimestamp = raw.length === 10 ? timestamp * 1000 : timestamp;
+    const parsedFromTimestamp = new Date(normalizedTimestamp);
+    return Number.isNaN(parsedFromTimestamp.getTime()) ? null : parsedFromTimestamp;
+  }
+
+  const normalized = raw.includes(" ") ? raw.replace(" ", "T") : raw;
+  const parsed = new Date(normalized);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-export function formatRelativeTime(date: string | Date) {
-  return formatDistanceToNow(new Date(date), {
+export function formatDate(date: string | Date | null | undefined, pattern = "yyyy年MM月dd日") {
+  const parsed = parseDateInput(date);
+  if (!parsed) {
+    return "时间未知";
+  }
+
+  return format(parsed, pattern, { locale: zhCN });
+}
+
+export function formatRelativeTime(date: string | Date | null | undefined) {
+  const parsed = parseDateInput(date);
+  if (!parsed) {
+    return "时间未知";
+  }
+
+  return formatDistanceToNow(parsed, {
     addSuffix: true,
     locale: zhCN,
   });

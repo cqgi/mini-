@@ -54,12 +54,11 @@ export default function RegisterPage() {
         formData.email,
         formData.password
       );
-      if (user && user.userId) {
+      if (user?.username) {
         rememberAccount(user);
-        router.push(
-          `/login?username=${encodeURIComponent(user.username)}&userId=${user.userId}`,
-          { transition: "fade" }
-        );
+        router.push(`/login?username=${encodeURIComponent(user.username)}`, {
+          transition: "fade",
+        });
       } else {
         setError("注册失败，请稍后重试");
       }
@@ -136,7 +135,7 @@ export default function RegisterPage() {
             </TransitionLink>
             <h1 className="text-2xl font-bold text-foreground">创建账户</h1>
             <p className="text-muted-foreground mt-2">
-              注册成功后会跳到登录页，并自动帮你带上 userId，方便继续联调
+              注册成功后会跳转到登录页，并自动帮你填好刚注册的用户名
             </p>
           </div>
 

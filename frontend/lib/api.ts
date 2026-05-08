@@ -7,6 +7,7 @@ type BackendResult<T = unknown> = {
   errorMsg?: string | null;
   data?: T;
   total?: number | null;
+  suggestion?: string | null;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -111,6 +112,10 @@ function unwrapResult<T>(payload: unknown) {
       data: (payload.data ?? null) as T,
       total: typeof payload.total === "number" ? payload.total : null,
       message: typeof payload.message === "string" ? payload.message : "",
+      suggestion:
+        typeof payload.suggestion === "string" && payload.suggestion.trim()
+          ? payload.suggestion.trim()
+          : null,
     };
   }
 
@@ -118,10 +123,23 @@ function unwrapResult<T>(payload: unknown) {
     data: payload as T,
     total: null,
     message: "",
+    suggestion: null,
   };
 }
 
 export interface User {
+  userId: number;
+  username: string;
+  nickname: string;
+  email: string;
+  avatar: string;
+  bio: string;
+  role: number;
+  createTime: string;
+  updateTime?: string;
+}
+
+export interface AdminUser {
   userId: number;
   username: string;
   nickname: string;
@@ -163,9 +181,24 @@ export interface Comment {
   updateTime?: string;
 }
 
+export interface AdminComment {
+  commentId: number;
+  articleId: number;
+  articleTitle?: string;
+  userId: number;
+  userNickname?: string;
+  parentId?: number | null;
+  content: string;
+  createTime: string;
+  updateTime?: string;
+}
+
 export interface Tag {
   tagId: number;
   tagName: string;
+  articleCount?: number;
+  createTime?: string;
+  updateTime?: string;
 }
 
 export interface Category {
@@ -184,6 +217,12 @@ export interface Result<T = unknown> {
   errorMsg?: string | null;
   data: T;
   total?: number | null;
+  suggestion?: string | null;
+}
+
+export interface UploadedFile {
+  objectKey: string;
+  url: string;
 }
 
 export const articleApi = {
@@ -192,6 +231,7 @@ export const articleApi = {
     page?: number;
     size?: number;
     categoryId?: number;
+    tagId?: number;
     keyword?: string;
     isTop?: number;
     status?: number;
@@ -204,6 +244,9 @@ export const articleApi = {
     searchParams.set("size", String(size));
     if (params?.categoryId) {
       searchParams.set("categoryId", String(params.categoryId));
+    }
+    if (params?.tagId) {
+      searchParams.set("tagId", String(params.tagId));
     }
     if (params?.keyword?.trim()) {
       searchParams.set("keyword", params.keyword.trim());
@@ -218,13 +261,14 @@ export const articleApi = {
     const payload = await request<Result<Article[]>>(
       `/articles?${searchParams.toString()}`
     );
-    const { data, total } = unwrapResult<Article[]>(payload);
+    const { data, total, suggestion } = unwrapResult<Article[]>(payload);
 
     return {
       items: Array.isArray(data) ? data : [],
       total: total ?? 0,
       current,
       size,
+      suggestion,
     };
   },
 
@@ -236,6 +280,56 @@ export const articleApi = {
   async getAdminDetail(articleId: number) {
     const payload = await request<Result<Article>>(`/admin/articles/${articleId}`);
     return unwrapResult<Article>(payload).data;
+  },
+
+  async getManageDetail(articleId: number) {
+    const payload = await request<Result<Article>>(`/articles/${articleId}/manage`);
+    return unwrapResult<Article>(payload).data;
+  },
+
+  async getAdminList(params?: {
+    current?: number;
+    page?: number;
+    size?: number;
+    categoryId?: number;
+    tagId?: number;
+    keyword?: string;
+    isTop?: number;
+    status?: number;
+  }) {
+    const searchParams = new URLSearchParams();
+    const current = params?.current ?? params?.page ?? 1;
+    const size = params?.size ?? 10;
+
+    searchParams.set("current", String(current));
+    searchParams.set("size", String(size));
+    if (params?.categoryId) {
+      searchParams.set("categoryId", String(params.categoryId));
+    }
+    if (params?.tagId) {
+      searchParams.set("tagId", String(params.tagId));
+    }
+    if (params?.keyword?.trim()) {
+      searchParams.set("keyword", params.keyword.trim());
+    }
+    if (typeof params?.isTop === "number") {
+      searchParams.set("isTop", String(params.isTop));
+    }
+    if (typeof params?.status === "number") {
+      searchParams.set("status", String(params.status));
+    }
+
+    const payload = await request<Result<Article[]>>(
+      `/admin/articles?${searchParams.toString()}`
+    );
+    const { data, total } = unwrapResult<Article[]>(payload);
+
+    return {
+      items: Array.isArray(data) ? data : [],
+      total: total ?? 0,
+      current,
+      size,
+    };
   },
 
   async create(data: {
@@ -287,6 +381,111 @@ export const articleApi = {
     });
     return unwrapResult<number>(payload);
   },
+
+  async deleteAdmin(articleId: number) {
+    const payload = await request<Result<number>>(`/admin/articles/${articleId}`, {
+      method: "DELETE",
+    });
+    return unwrapResult<number>(payload);
+  },
+
+  async changeAdminTopStatus(articleId: number, isTop: 0 | 1) {
+    const payload = await request<Result<number>>(
+      `/admin/articles/${articleId}/top?isTop=${isTop}`,
+      {
+        method: "PATCH",
+      }
+    );
+    return unwrapResult<number>(payload);
+  },
+};
+
+export const tagApi = {
+  async getList(params?: {
+    current?: number;
+    size?: number;
+    keyword?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+    const current = params?.current ?? 1;
+    const size = params?.size ?? 10;
+
+    searchParams.set("current", String(current));
+    searchParams.set("size", String(size));
+    if (params?.keyword?.trim()) {
+      searchParams.set("keyword", params.keyword.trim());
+    }
+
+    const payload = await request<Result<Tag[]>>(`/tags?${searchParams.toString()}`);
+    const { data, total } = unwrapResult<Tag[]>(payload);
+
+    return {
+      items: Array.isArray(data) ? data : [],
+      total: total ?? 0,
+      current,
+      size,
+    };
+  },
+
+  async getAdminList(params?: {
+    current?: number;
+    size?: number;
+    keyword?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+    const current = params?.current ?? 1;
+    const size = params?.size ?? 10;
+
+    searchParams.set("current", String(current));
+    searchParams.set("size", String(size));
+    if (params?.keyword?.trim()) {
+      searchParams.set("keyword", params.keyword.trim());
+    }
+
+    const payload = await request<Result<Tag[]>>(`/admin/tags?${searchParams.toString()}`);
+    const { data, total } = unwrapResult<Tag[]>(payload);
+
+    return {
+      items: Array.isArray(data) ? data : [],
+      total: total ?? 0,
+      current,
+      size,
+    };
+  },
+
+  async getDetail(tagId: number) {
+    const payload = await request<Result<Tag>>(`/tags/${tagId}`);
+    return unwrapResult<Tag>(payload).data;
+  },
+
+  async create(data: { tagName: string }) {
+    const payload = await request<Result<number>>("/admin/tags", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return unwrapResult<number>(payload);
+  },
+
+  async update(tagId: number, data: { tagName: string }) {
+    const payload = await request<Result<number>>(`/admin/tags/${tagId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return unwrapResult<number>(payload);
+  },
+
+  async delete(tagId: number) {
+    const payload = await request<Result<number>>(`/admin/tags/${tagId}`, {
+      method: "DELETE",
+    });
+    return unwrapResult<number>(payload);
+  },
 };
 
 export const categoryApi = {
@@ -295,9 +494,97 @@ export const categoryApi = {
     const { data } = unwrapResult<Category[]>(payload);
     return Array.isArray(data) ? data : [];
   },
+
+  async getAdminList() {
+    const payload = await request<Result<Category[]>>("/admin/categories");
+    const { data } = unwrapResult<Category[]>(payload);
+    return Array.isArray(data) ? data : [];
+  },
+
+  async getDetail(categoryId: number) {
+    const payload = await request<Result<Category>>(`/admin/categories/${categoryId}`);
+    return unwrapResult<Category>(payload).data;
+  },
+
+  async create(data: {
+    categoryName: string;
+    description?: string;
+    sort?: number;
+  }) {
+    const payload = await request<Result<number>>("/admin/categories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return unwrapResult<number>(payload);
+  },
+
+  async update(
+    categoryId: number,
+    data: {
+      categoryName: string;
+      description?: string;
+      sort?: number;
+    }
+  ) {
+    const payload = await request<Result<number>>(`/admin/categories/${categoryId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return unwrapResult<number>(payload);
+  },
+
+  async delete(categoryId: number) {
+    const payload = await request<Result<number>>(`/admin/categories/${categoryId}`, {
+      method: "DELETE",
+    });
+    return unwrapResult<number>(payload);
+  },
 };
 
 export const commentApi = {
+  async getAdminList(params?: {
+    current?: number;
+    page?: number;
+    size?: number;
+    articleId?: number;
+    userId?: number;
+    keyword?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+    const current = params?.current ?? params?.page ?? 1;
+    const size = params?.size ?? 10;
+
+    searchParams.set("current", String(current));
+    searchParams.set("size", String(size));
+    if (params?.articleId) {
+      searchParams.set("articleId", String(params.articleId));
+    }
+    if (params?.userId) {
+      searchParams.set("userId", String(params.userId));
+    }
+    if (params?.keyword?.trim()) {
+      searchParams.set("keyword", params.keyword.trim());
+    }
+
+    const payload = await request<Result<AdminComment[]>>(
+      `/admin/comments?${searchParams.toString()}`
+    );
+    const { data, total } = unwrapResult<AdminComment[]>(payload);
+
+    return {
+      items: Array.isArray(data) ? data : [],
+      total: total ?? 0,
+      current,
+      size,
+    };
+  },
+
   async getTopComments(articleId: number) {
     const payload = await request<Comment[]>(
       `/blog-comments/blog/${articleId}/topCommentList`
@@ -343,6 +630,14 @@ export const commentApi = {
     return unwrapResult<void>(payload);
   },
 
+  async deleteAdmin(commentId: number) {
+    const payload = await request<Result<void>>(`/admin/comments/${commentId}`, {
+      method: "DELETE",
+    });
+
+    return unwrapResult<void>(payload);
+  },
+
   async reply(commentId: number, userId: number, content: string) {
     const payload = await request<Result<void>>(
       `/blog-comments/blog/${commentId}/${userId}/reply`,
@@ -373,6 +668,18 @@ export const userApi = {
     return token;
   },
 
+  async adminLogin(username: string, password: string) {
+    const params = new URLSearchParams({ username, password });
+    const payload = await request<string>(`/auth/admin/login?${params}`, {
+      method: "POST",
+    });
+    const token = String(payload ?? "").trim();
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+    return token;
+  },
+
   // 注册
   async register(username: string, email: string, password: string) {
     const params = new URLSearchParams({ username, email, password });
@@ -382,6 +689,62 @@ export const userApi = {
   // 获取个人资料
   async getProfile() {
     return request<User>("/users/profile");
+  },
+
+  async getAdminUsers(params?: {
+    current?: number;
+    page?: number;
+    size?: number;
+    keyword?: string;
+    role?: number;
+  }) {
+    const searchParams = new URLSearchParams();
+    const current = params?.current ?? params?.page ?? 1;
+    const size = params?.size ?? 10;
+
+    searchParams.set("current", String(current));
+    searchParams.set("size", String(size));
+    if (params?.keyword?.trim()) {
+      searchParams.set("keyword", params.keyword.trim());
+    }
+    if (typeof params?.role === "number") {
+      searchParams.set("role", String(params.role));
+    }
+
+    const payload = await request<Result<AdminUser[]>>(
+      `/admin/users?${searchParams.toString()}`
+    );
+    const { data, total } = unwrapResult<AdminUser[]>(payload);
+
+    return {
+      items: Array.isArray(data) ? data : [],
+      total: total ?? 0,
+      current,
+      size,
+    };
+  },
+
+  async getAdminUserDetail(userId: number) {
+    const payload = await request<Result<AdminUser>>(`/admin/users/${userId}`);
+    return unwrapResult<AdminUser>(payload).data;
+  },
+
+  async updateAdminUserRole(userId: number, role: 0 | 1) {
+    const payload = await request<Result<number>>(`/admin/users/${userId}/role`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ role }),
+    });
+    return unwrapResult<number>(payload);
+  },
+
+  async deleteAdminUser(userId: number) {
+    const payload = await request<Result<number>>(`/admin/users/${userId}`, {
+      method: "DELETE",
+    });
+    return unwrapResult<number>(payload);
   },
 
   // 修改资料
@@ -432,5 +795,19 @@ export const userApi = {
     });
     if (payload !== true) throw new Error("取消收藏失败");
     return true;
+  },
+};
+
+export const fileApi = {
+  async uploadImage(scene: "avatar" | "cover", file: File) {
+    const formData = new FormData();
+    formData.set("scene", scene);
+    formData.set("file", file);
+
+    const payload = await request<Result<UploadedFile>>("/files/upload", {
+      method: "POST",
+      body: formData,
+    });
+    return unwrapResult<UploadedFile>(payload).data;
   },
 };

@@ -4,7 +4,6 @@ import type { User } from "./api";
 
 interface KnownAccount {
   username: string;
-  userId: number;
   nickname?: string;
   role?: number;
 }
@@ -16,18 +15,16 @@ interface AuthState {
   knownAccounts: KnownAccount[];
   login: (user: User, loginMessage?: string) => void;
   rememberAccount: (user: User) => void;
-  findKnownAccount: (username: string) => KnownAccount | undefined;
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
 }
 
 function mergeKnownAccount(
   accounts: KnownAccount[],
-  user: Pick<User, "username" | "userId" | "nickname" | "role">
+  user: Pick<User, "username" | "nickname" | "role">
 ) {
   const next: KnownAccount = {
     username: user.username,
-    userId: user.userId,
     nickname: user.nickname,
     role: user.role,
   };
@@ -40,7 +37,7 @@ function mergeKnownAccount(
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       isAuthenticated: false,
       loginMessage: null,
@@ -56,8 +53,6 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({
           knownAccounts: mergeKnownAccount(state.knownAccounts, user),
         })),
-      findKnownAccount: (username) =>
-        get().knownAccounts.find((account) => account.username === username),
       logout: () => {
         localStorage.removeItem("token");
         set({ user: null, isAuthenticated: false, loginMessage: null });

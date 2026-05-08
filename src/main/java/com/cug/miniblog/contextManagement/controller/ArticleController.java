@@ -5,6 +5,7 @@ import com.cug.miniblog.contextManagement.dto.CreateArticleDTO;
 import com.cug.miniblog.contextManagement.dto.Result;
 import com.cug.miniblog.contextManagement.dto.UpdateArticleDTO;
 import com.cug.miniblog.contextManagement.service.IArticleService;
+import com.cug.miniblog.personalCenter.utils.UserContext;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +42,18 @@ public class ArticleController {
     @GetMapping("/{articleId}")
     public Result getPublishedArticleDetail(@PathVariable("articleId") Long articleId) {
         return articleService.getPublishedArticleDetail(articleId);
+    }
+
+    /**
+     * 当前登录用户可编辑的文章详情（本人或管理员）
+     */
+    @GetMapping("/{articleId}/manage")
+    public Result getManageableArticleDetail(@PathVariable("articleId") Long articleId) {
+        return articleService.getManageableArticleDetail(
+                articleId,
+                UserContext.getUserId(),
+                UserContext.getUserRole()
+        );
     }
 
     /**

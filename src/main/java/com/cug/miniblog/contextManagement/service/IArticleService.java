@@ -21,6 +21,11 @@ public interface IArticleService {
     Result getPublishedArticleDetail(Long articleId);
 
     /**
+     * 当前登录用户可管理的文章详情（本人或管理员）
+     */
+    Result getManageableArticleDetail(Long articleId, Long currentUserId, Integer currentUserRole);
+
+    /**
      * 后台文章列表
      */
     Result listAdminArticles(ArticleQueryDTO articleQueryDTO);

@@ -23,6 +23,8 @@ public class Comment implements Serializable {
 
     private Long parentId;
 
+    private Long isLiked;
+
     private String content;
 
     private LocalDateTime createTime;

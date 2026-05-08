@@ -44,6 +44,11 @@ public class Result implements Serializable {
      * 列表总数，分页场景使用
      */
     private Long total;
+
+    /**
+     * 搜索纠错建议，仅在需要时返回
+     */
+    private String suggestion;
 @Override
 public String toString() {
     return "Result{" +
@@ -51,6 +56,7 @@ public String toString() {
             ", errorMsg='" + errorMsg + '\'' +
             ", data=" + data +
             ", total=" + total +
+            ", suggestion='" + suggestion + '\'' +
             '}';
 }
 
@@ -65,6 +71,7 @@ public String toString() {
                 .errorMsg(null)
                 .data(null)
                 .total(null)
+                .suggestion(null)
                 .build();
     }
 
@@ -76,10 +83,15 @@ public String toString() {
                 .errorMsg(null)
                 .data(data)
                 .total(null)
+                .suggestion(null)
                 .build();
     }
 
     public static Result ok(List<?> data, Long total){
+        return ok(data, total, null);
+    }
+
+    public static Result ok(List<?> data, Long total, String suggestion){
         return Result.builder()
                 .code(SUCCESS_CODE)
                 .success(true)
@@ -87,6 +99,7 @@ public String toString() {
                 .errorMsg(null)
                 .data(data)
                 .total(total)
+                .suggestion(suggestion)
                 .build();
     }
 
@@ -98,6 +111,7 @@ public String toString() {
                 .errorMsg(null)
                 .data(data)
                 .total(null)
+                .suggestion(null)
                 .build();
     }
 
@@ -109,6 +123,7 @@ public String toString() {
                 .errorMsg(errorMsg)
                 .data(null)
                 .total(null)
+                .suggestion(null)
                 .build();
     }
 
@@ -120,6 +135,7 @@ public String toString() {
                 .errorMsg(errorMsg)
                 .data(null)
                 .total(null)
+                .suggestion(null)
                 .build();
     }
 }

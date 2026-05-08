@@ -2,6 +2,9 @@ package com.cug.miniblog.personalCenter.service;
 
 
 import com.cug.miniblog.common.entity.User;
+import com.cug.miniblog.contextManagement.dto.Result;
+import com.cug.miniblog.personalCenter.dto.AdminUserQueryDTO;
+import com.cug.miniblog.personalCenter.dto.UpdateUserRoleDTO;
 
 import java.util.List;
 
@@ -24,6 +27,26 @@ public interface UsersService {
      * @return 是否更新成功
      */
     boolean updateProfile(Long userId, String nickname, String avatar, String bio);
+
+    /**
+     * 后台用户列表
+     */
+    Result listAdminUsers(AdminUserQueryDTO adminUserQueryDTO);
+
+    /**
+     * 后台用户详情
+     */
+    Result getAdminUser(Long userId);
+
+    /**
+     * 后台修改用户角色
+     */
+    Result updateAdminUserRole(Long userId, UpdateUserRoleDTO updateUserRoleDTO, Long operatorUserId);
+
+    /**
+     * 后台删除用户
+     */
+    Result deleteAdminUser(Long userId, Long operatorUserId);
 
     /**
      * 获取当前用户的所有文章（支持按状态筛选）
