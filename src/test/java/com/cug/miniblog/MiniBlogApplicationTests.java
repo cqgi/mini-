@@ -6,8 +6,9 @@ import com.cug.miniblog.contextManagement.controller.CommentsController;
 import com.cug.miniblog.contextManagement.dto.Result;
 import com.cug.miniblog.common.entity.Comment;
 import com.cug.miniblog.contextManagement.service.MessageService;
-import com.cug.miniblog.contextManagement.utils.JwtUtil;
+import com.cug.miniblog.personalCenter.utils.JwtUtil;
 import jakarta.annotation.Resource;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Disabled("Manual database smoke tests. ReportIntegrationTests covers the runnable report scenarios.")
 class MiniBlogApplicationTests {
 
     @Autowired
@@ -125,4 +127,3 @@ class MiniBlogApplicationTests {
         System.out.println("Token：" + token);
     }
 }
-
