@@ -1,7 +1,11 @@
 .idea/
+.mvn/
 target/
 config.yaml
 .env.local
 frontend/node_modules/
 frontend/.next/
 frontend/.env.local
+.vscode/
+docs/
+报告/
